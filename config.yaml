@@ -31,11 +31,11 @@ CORES: 10
 # required programs
 PICARD: scripts/outside_tools/picard.jar
 DROPSEQ: scripts/outside_tools/Drop-seq_tools-1.12/
-GTFTOGENEPRED: scripts/outside_tools/gtfToGenePred
 STAREXEC: scripts/outside_tools/STAR-2.5/bin/Linux_x86_64/STAR
 FASTQCEXEC: scripts/outside_tools/fastqc
 SingleCellHMM: scripts/SingleCellHMM_2.bash
 generate_refFlat_script: scripts/generate_refFlat_script_both.R
+GTFTOGENEPRED: scripts/gtfToGenePred
 Rscript: /programs/bin/R/Rscript
 # samtools also required
 
