@@ -1,0 +1,49 @@
+Samples:
+    day4_1m:
+    day7_1m:
+    day10_1m:
+    day14_1m:
+
+GENOMEREF: /workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
+REFGTF: /workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
+
+SAMPWDIR:   sampwdir/
+DATADIR: /workdir/fw262/ShaoPei/pipeline/testData_small 
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356 #day 4
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356: # day 7 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356: # day 7 RV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day10/HGGFCBGX5_cellranger_mkfastq_output_27March2018/outs/fastq_path/Project_9385_10362/Sample_72254_HGGFCBGX5_LV: # day 10 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day10/HGGFCBGX5_cellranger_mkfastq_output_27March2018/outs/fastq_path/Project_9385_10362/Sample_72255_HGGFCBGX5_RV: # day 10 RV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day14/HWYLJBGX5_cellranger_mkfastq_output_LV_RV_18May2018/outs/fastq_path/Project_9596_10362/Sample_75018_HWYLJBGX5_LV: # day 14 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day14/HWYLJBGX5_cellranger_mkfastq_output_LV_RV_18May2018/outs/fastq_path/Project_9596_10362/Sample_75019_HWYLJBGX5_RV: # day 14 RV
+    
+TMPDIR: temp
+
+PIPELINE_MAJOR: results_out
+
+SPECIES:
+    - chicken
+GLOBAL:
+    allowed_mismatch: 10
+    BC_range:
+        first: 1
+        last: 16
+    UMI_range:
+        first: 17
+        last: 26 # 28 for v3, up to 26 for v2
+
+BOWTIE: /programs/bowtie2-2.3.0/bowtie2
+PICARD: /programs/picard-tools-2.1.1/picard.jar
+DROPSEQ: /home/av486/Desktop/Tools/Drop-seq_tools-1.12/
+GTFTOGENEPRED: /workdir/fw262/tools/gtfToGenePred
+MIXCR: /workdir/fw262/tools/mixcr-2.1.5/mixcr
+STAREXEC: /programs/STAR-2.5/bin/Linux_x86_64/STAR
+FASTQCEXEC: fastqc
+CORES: 10 
+expectedCells: 5000
+MINCOV: 5
+
+#REFFLAT: /workdir/References/Chick/GRCg6a/refFlat_ensembl.refFlat.filled.refFlat
+#REFFLAT_HMM_withDir: /workdir/fw262/ShaoPei/chickenAll/all_Aligned_sorted_2_merge500_5reads.bed.withDir.refFlat_ensembl.refFlat.filled.refFlat
+#REFFLAT_HMM_noDir: /workdir/fw262/ShaoPei/chickenAll/all_Aligned_sorted_2_merge500_5reads.bed.noDir.refFlat_ensembl.refFlat.filled.refFlat
+#METAREF: /workdir/References/Chick/GRCg6a/STAR_noAnno
