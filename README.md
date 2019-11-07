@@ -27,19 +27,19 @@ Download the latest release of the Drop-seq tools (i.e. the Drop-seq_tools-2.3.0
 7. [Samtools](http://www.htslib.org/)
 
 ## Procedure
-### Download required software.
+### 1. Download required software.
 
 Please ensure to include all required software before starting.
 
-### Downlaod Snakefile, config.yaml, and the scripts folder.
+### 2. Download Snakefile, config.yaml, and the scripts folder.
 
 Please download all of the files in this repository including the scripts folder.
 
-### Move or create a symbolic link to fastq files inthe same directory.
+### 3. Move or create a symbolic link to fastq files inthe same directory.
 
 Please move all your fastq sequencing files to one data directory. Please ensure the sequence files end in "{sample}\_R1.fastq.gz" and "{sample}\_R2.fastq.gz" in your data directory. You can also create a symbolic link of your sequence files into a data directory. 
 
-### Edit the config.yaml file as needed for your experiment.
+### 4. Edit the config.yaml file as needed for your experiment.
 
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 - **Samples**: Samples prefix (before the \_R1.fastq.gz)
@@ -54,3 +54,7 @@ Please also include paths to the required software packages. Please note that th
 - **SingleCellHMM**: scripts/SingleCellHMM_2.bash
 - **generate_refFlat_script**: scripts/generate_refFlat_script_both.R # included in scripts folder
 - **GTFTOGENEPRED**: scripts/gtfToGenePred 
+
+### 5. Run snakemake with the command "snakemake".
+
+Please ensure the Snakefile and the edited config.yaml file is contained in the output directory.
