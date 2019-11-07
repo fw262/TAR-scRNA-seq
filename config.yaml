@@ -35,7 +35,7 @@ STAREXEC: scripts/outside_tools/STAR-2.5/bin/Linux_x86_64/STAR
 FASTQCEXEC: scripts/outside_tools/fastqc
 SingleCellHMM: scripts/SingleCellHMM_2.bash
 generate_refFlat_script: scripts/generate_refFlat_script_both.R
-GTFTOGENEPRED: scripts/gtfToGenePred
+GTFTOGENEPRED: scripts/gtfToGenePred #https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html https://github.com/igordot/genomics/blob/master/notes/converting-files.md
 Rscript: /programs/bin/R/Rscript
 # samtools also required
 
