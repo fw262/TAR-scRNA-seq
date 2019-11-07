@@ -28,15 +28,19 @@ Download the latest release of the Drop-seq tools (i.e. the Drop-seq_tools-2.3.0
 
 ## Procedure
 ### Download required software.
+
 Please ensure to include all required software before starting.
 
 ### Downlaod Snakefile, config.yaml, and the scripts folder.
+
 Please download all of the files in this repository including the scripts folder.
 
 ### Move or create a symbolic link to fastq files inthe same directory.
+
 Please move all your fastq sequencing files to one data directory. Please ensure the sequence files end in "{sample}\_R1.fastq.gz" and "{sample}\_R2.fastq.gz" in your data directory. You can also create a symbolic link of your sequence files into a data directory. 
 
 ### Edit the config.yaml file as needed for your experiment.
+
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 -Samples: Samples prefix (before the \_R1.fastq.gz)
 -DATADIR: Path to where the sequencing samples are stored.
