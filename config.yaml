@@ -29,13 +29,14 @@ MINCOV: 5
 CORES: 10 
 
 # required programs
+# please provide the paths to these programs
 PICARD: scripts/outside_tools/picard.jar
 DROPSEQ: scripts/outside_tools/Drop-seq_tools-1.12/
 STAREXEC: scripts/outside_tools/STAR-2.5/bin/Linux_x86_64/STAR
 FASTQCEXEC: scripts/outside_tools/fastqc
-SingleCellHMM: scripts/SingleCellHMM_2.bash
-generate_refFlat_script: scripts/generate_refFlat_script_both.R
-GTFTOGENEPRED: scripts/gtfToGenePred #https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html https://github.com/igordot/genomics/blob/master/notes/converting-files.md
+SingleCellHMM: scripts/SingleCellHMM_2.bash # included in scripts folder
+generate_refFlat_script: scripts/generate_refFlat_script_both.R # included in scripts folder
+GTFTOGENEPRED: scripts/gtfToGenePred # included in scripts folder https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html https://github.com/igordot/genomics/blob/master/notes/converting-files.md
 Rscript: /programs/bin/R/Rscript
 # samtools also required
 
