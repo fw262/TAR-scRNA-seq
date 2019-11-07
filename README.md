@@ -42,15 +42,15 @@ Please move all your fastq sequencing files to one data directory. Please ensure
 ### Edit the config.yaml file as needed for your experiment.
 
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
--Samples: Samples prefix (before the \_R1.fastq.gz)
--DATADIR: Path to where the sequencing samples are stored.
--GENOMEREF: Path to your genome assembly file.
--REFGTF: Path to your gene annotations in gtf format.
--GLOBAL: Variables used to define cell barcode and unique molecule identifier ranges in your read 1 fastq sequencing file.
--expectedCells: Expected number of cells in each scRNA-seq experiment.
--MINCOV: Minimum number of aligned reads for the region to be considered as a feature for further scRNA-seq analysis.
--CORES: Number of cores used in the pipeline.
+- **Samples**: Samples prefix (before the \_R1.fastq.gz)
+- **DATADIR**: Path to where the sequencing samples are stored.
+- **GENOMEREF**: Path to your genome assembly file.
+- **REFGTF**: Path to your gene annotations in gtf format.
+- **GLOBAL**: Variables used to define cell barcode and unique molecule identifier ranges in your read 1 fastq sequencing file.
+- **expectedCells**: Expected number of cells in each scRNA-seq experiment.
+- **MINCOV**: Minimum number of aligned reads for the region to be considered as a feature for further scRNA-seq analysis.
+- **CORES**: Number of cores used in the pipeline.
 Please also include paths to the required software packages. Please note that the following tools are included in the scripts folder:
--SingleCellHMM: scripts/SingleCellHMM_2.bash
--generate_refFlat_script: scripts/generate_refFlat_script_both.R # included in scripts folder
--GTFTOGENEPRED: scripts/gtfToGenePred 
+- **SingleCellHMM**: scripts/SingleCellHMM_2.bash
+- **generate_refFlat_script**: scripts/generate_refFlat_script_both.R # included in scripts folder
+- **GTFTOGENEPRED**: scripts/gtfToGenePred 
