@@ -37,7 +37,7 @@ Please download all of the files in this repository including the scripts folder
 Please move all your fastq sequencing files to one data directory. Please ensure the sequence files end in "{sample}\_R1.fastq.gz" and "{sample}\_R2.fastq.gz" in your data directory. You can also create a symbolic link of your sequence files into a data directory. 
 
 ### Edit the config.yaml file as needed for your experiment.
-Please change the variable names in the config.yaml as required for your analysis. This includes the following changes ...
+Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 -Samples: Samples prefix (before the \_R1.fastq.gz)
 -DATADIR: Path to where the sequencing samples are stored.
 -GENOMEREF: Path to your genome assembly file.
@@ -46,7 +46,7 @@ Please change the variable names in the config.yaml as required for your analysi
 -expectedCells: Expected number of cells in each scRNA-seq experiment.
 -MINCOV: Minimum number of aligned reads for the region to be considered as a feature for further scRNA-seq analysis.
 -CORES: Number of cores used in the pipeline.
-Please also include paths to the required software packages. Please note that the following tools are included in the scripts folder.
+Please also include paths to the required software packages. Please note that the following tools are included in the scripts folder:
 -SingleCellHMM: scripts/SingleCellHMM_2.bash
 -generate_refFlat_script: scripts/generate_refFlat_script_both.R # included in scripts folder
 -GTFTOGENEPRED: scripts/gtfToGenePred 
