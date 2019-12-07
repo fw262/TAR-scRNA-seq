@@ -1,12 +1,14 @@
 #################################################
-# Michael Wang			
-# Drop-Seq Snakemake pipeline with de-novo generation of features integration			
-# Adapted from the Dropseq pipeline by Hoohm:		
-# https://github.com/Hoohm/dropseqpipe				
+# Michael Wang			#
+# TAR scRNA-seq analysis			#
+# last edited Dec. 6, 2019			#
 #################################################
+import pdb
+
 ########################################################################################################
 # Configfile
 ########################################################################################################
+# configfile:'config.B1-25.yaml'
 configfile:'config.yaml'
 ########################################################################################################
 # Variables and references
@@ -15,28 +17,38 @@ SAMPLEWDIR = config['SAMPWDIR']
 MISMATCH = config['GLOBAL']['allowed_mismatch']
 DATADIR = config['DATADIR']
 GENOMEREF = config['GENOMEREF']
+#REFFLAT = config['REFFLAT']
+#REFFLAT_HMM = config['REFFLAT_HMM']
+#REFFLAT_HMM_noDir = config['REFFLAT_HMM_noDir']
+#REFFLAT_HMM_withDir = config['REFFLAT_HMM_withDir']
+#METAREF = config['METAREF']
+#RRNAINTERVALS=config['RRNAINTERVALS']
 TMPDIR = config['TMPDIR']
 gtffile=config['REFGTF']
 MINCOV=str(config['MINCOV'])
+MERGEBP=str(config['MERGEBP'])
 ########################################################################################################
 # Executables
 ########################################################################################################
 TMPDIR = config['TMPDIR']
-MIXCR = config['MIXCR']
+#MIXCR = config['MIXCR']
 PICARD = config['PICARD']
 DROPSEQ = config['DROPSEQ']
 FASTQC = config['FASTQCEXEC']
 STAREXEC = config['STAREXEC']
 CORES = config['CORES']
 gtfToGenePred=config['GTFTOGENEPRED']
-SingleCellHMM=config['SingleCellHMM']
-generate_refFlat_script=config['generate_refFlat_script']
-Rscript=config['Rscript']
 
 rule all:
 ############## original default call here
 	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_expression_matrix.txt.gz', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_Aligned_sorted_2.bam.bai', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_expression_matrix.txt.gz', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}.tagged.Bcell.numerated.cell.list', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples']) #### this works until the end
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}.allcells.descriptions.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_STAR_Aligned.out.sam', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_unaligned_r2.bam', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 
 #####################################################################################
 # create STAR index
@@ -301,87 +313,73 @@ rule calcHMMbed:
 	input:
 		samples='combined_bam.bam'
 	output:
-		out='combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz'
+		out='combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
 	run:
-		shell("bash {SingleCellHMM} {input} {CORES} {MINCOV}")
+		shell("bash scripts/SingleCellHMM_2.bash {input} {CORES} {MINCOV} {MERGEBP}")
 
 rule calcHMMrefFlat:
-	input:	'combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz'
-	output: 'combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat',
-			'combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
+	input:	'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
+	output: 'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat',
+			'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
 	shell:
-		"""{Rscript} {generate_refFlat_script_both.R} refFlat.refFlat {input}"""
+		"""Rscript scripts/generate_refFlat_script_both.R refFlat.refFlat {input}"""
 
+rule MergeBamAlignment:
+	input:  unmapped = '{path}/{sample}_tagged_unmapped.bam', mapped = '{path}/{sample}_Aligned_sorted_2.bam'
+        output: '{path}/{sample}_merged.bam'
+        threads: 4
+        shell:
+                """java -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
+                REFERENCE_SEQUENCE={GENOMEREF}\
+                UNMAPPED_BAM={input.unmapped}\
+              	ALIGNED_BAM={input.mapped}\
+                INCLUDE_SECONDARY_ALIGNMENTS=false\
+                PAIRED_RUN=false\
+                OUTPUT={output}
+		"""
 
 rule stage3:
-	input:	unmapped = '{path}/{sample}_tagged_unmapped.bam',
-			mapped = '{path}/{sample}_Aligned_sorted_2.bam',
-			reference = 'refFlat.refFlat',
-			dict=config['GENOMEREF']+'.dict'
-	output: '{path}/{sample}_gene_exon_tagged.bam'
-	threads: 4
-	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
-		REFERENCE_SEQUENCE={GENOMEREF}\
-		UNMAPPED_BAM={input.unmapped}\
-		ALIGNED_BAM={input.mapped}\
-		INCLUDE_SECONDARY_ALIGNMENTS=false\
-		PAIRED_RUN=false\
-		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
-		\
+	input:  merged = '{path}/{sample}_merged.bam', reference = 'refFlat.refFlat'
+        output: '{path}/{sample}_gene_exon_tagged.bam'
+        threads: 4
+        shell:
+                """
 		{DROPSEQ}/TagReadWithGeneExon\
-		O={output}\
-		I=/dev/stdin\
-		ANNOTATIONS_FILE={input.reference}\
-		TAG=GE\
-		CREATE_INDEX=true
-		"""
+                O={output}\
+                I={input.merged}\
+                ANNOTATIONS_FILE={input.reference}\
+                TAG=GE\
+                CREATE_INDEX=true
+                """
 		
 rule stage3_withDir:
-	input:	unmapped = '{path}/{sample}_tagged_unmapped.bam',
-			mapped = '{path}/{sample}_Aligned_sorted_2.bam',
-			reference='combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
+	input:	merged = '{path}/{sample}_merged.bam',
+		reference ='combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
 	output: '{path}/{sample}_HMM_tagged_withDir.bam'
 	threads: 4
-	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
-		REFERENCE_SEQUENCE={GENOMEREF}\
-		UNMAPPED_BAM={input.unmapped}\
-		ALIGNED_BAM={input.mapped}\
-		INCLUDE_SECONDARY_ALIGNMENTS=false\
-		PAIRED_RUN=false\
-		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
-		\
-		{DROPSEQ}/TagReadWithGeneExon\
-		O={output}\
-		I=/dev/stdin\
-		ANNOTATIONS_FILE={input.reference}\
-		TAG=GE\
-		CREATE_INDEX=true
-		"""
-
+        shell:
+                """
+                {DROPSEQ}/TagReadWithGeneExon\
+                O={output}\
+                I={input.merged}\
+                ANNOTATIONS_FILE={input.reference}\
+                TAG=GE\
+                CREATE_INDEX=true
+                """
 rule stage3_noDir:
-	input:	unmapped = '{path}/{sample}_tagged_unmapped.bam',
-			mapped = '{path}/{sample}_Aligned_sorted_2.bam',
-			reference='combined_bam_HMM_features/combined_bam_merge500_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
+        input:  merged = '{path}/{sample}_merged.bam',           
+	        reference = 'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
 	output: '{path}/{sample}_HMM_tagged_noDir.bam'
 	threads: 4
-	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
-		REFERENCE_SEQUENCE={GENOMEREF}\
-		UNMAPPED_BAM={input.unmapped}\
-		ALIGNED_BAM={input.mapped}\
-		INCLUDE_SECONDARY_ALIGNMENTS=false\
-		PAIRED_RUN=false\
-		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
-		\
-		{DROPSEQ}/TagReadWithGeneExon\
-		O={output}\
-		I=/dev/stdin\
-		ANNOTATIONS_FILE={input.reference}\
-		TAG=GE\
-		CREATE_INDEX=true
-		"""
+        shell:
+                """
+                {DROPSEQ}/TagReadWithGeneExon\
+                O={output}\
+                I={input.merged}\
+                ANNOTATIONS_FILE={input.reference}\
+                TAG=GE\
+                CREATE_INDEX=true
+                """
 
 ########################################################################################################
 # Extract expression for single species
@@ -437,3 +435,161 @@ rule dummyOut:
 	output: '{path}/{sample}_finish.txt'
 	shell:
 		"""echo "Expression matrices ready" > {output}"""
+
+
+rule gunzip:
+	input: '{path}/{sample}_expression_matrix.txt.gz'
+	output: '{path}/{sample}_expression_matrix.txt'
+	shell:
+		"""gunzip -qf {input}"""
+
+########################################################################################################
+# Generate report
+########################################################################################################
+rule report:
+	input:
+		'{path}/{sample}_expression_matrix.txt'
+	output:
+		'{path}/{sample}.report.html'
+	run:
+		from snakemake.utils import report
+		
+		report("""
+		A test dropseq pipeline
+		""", output[0])
+
+
+# Get Bcell related Cells and IG genes
+########################################################################################################
+rule Bcell_list:
+	input: '{path}/{sample}_expression_matrix.txt'
+	output: barcode = '{path}/{sample}.Bcell.barcodes.txt'
+	shell: 
+		"""
+			 Rscript bin/Rscripts/DropSeq_analysis.barebones.justB.R {wildcards.sample} TRUE 100 ;
+		"""
+
+rule Bcell_raw_tags:
+	input:	bam = '{path}/{sample}_tagged_unmapped.bam',
+		barcode = '{path}/{sample}.Bcell.barcodes.txt'
+	output: sam = temp('{path}/{sample}.tagged.Bcell.sam'),
+		bam  = temp('{path}/{sample}.tagged.Bcell.bam'),
+		fastq = '{path}/{sample}.tagged.Bcell.fastq',
+		readid = '{path}/{sample}.tagged.Bcell.reads' 
+	threads: 2
+	shell:
+		"""
+			samtools view {input.bam} | LC_ALL=C grep -wFf {input.barcode} \
+				 > {output.sam} ;
+			awk '{{ print $1":"$12":"$14"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11}}' {output.sam} \
+				| samtools view -bS - > {output.bam} ;
+			bamToFastq -i {output.bam} -fq {output.fastq} ;
+			awk 'NR%4==1' {output.fastq} > {output.readid} ; 
+		"""
+
+rule allcell_raw_tags:
+	input:  bam = '{path}/{sample}_tagged_unmapped.bam',
+		celldesc = '{path}/{sample}.allcells.descriptions.txt'
+	output: barcode = temp('{path}/{sample}.allcell.barcodes.txt'),
+		sam = temp('{path}/{sample}.tagged.allcell.sam'),
+		bam  = temp('{path}/{sample}.tagged.allcell.bam'),
+		fastq = '{path}/{sample}.tagged.allcell.fastq',
+		readid = '{path}/{sample}.tagged.allcell.reads'
+	threads: 2
+	shell:
+		"""
+			cut -f 1 {input.celldesc} > {output.barcode} ;
+			samtools view {input.bam} | LC_ALL=C grep -wFf {output.barcode} \
+				> {output.sam} ;
+			awk '{{ print $1":"$12":"$14"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11}}' {output.sam} \
+				| samtools view -bS - > {output.bam} ;
+			bamToFastq -i {output.bam} -fq {output.fastq} ;
+			awk 'NR%4==1' {output.fastq} > {output.readid} ;
+		"""
+
+
+
+rule ig_process:
+	input: '{path}/{sample}.tagged.Bcell.fastq'
+	output:	vdj1 = '{path}/{sample}.tagged.Bcell.vdjca',
+		rep = '{path}/{sample}.tagged.Bcell.reportTxt',
+		rescue1 = '{path}/{sample}.tagged.Bcell.rescued1.vdjca',
+		rescue2 = '{path}/{sample}.tagged.Bcell.rescued2.vdjca',
+		clones = '{path}/{sample}.tagged.Bcell.clns',
+		clnstxt = '{path}/{sample}.tagged.Bcell.clones.txt',
+		trb = '{path}/{sample}.tagged.Bcell.clones.TRB.txt',
+		igh = '{path}/{sample}.tagged.Bcell.clones.IGH.txt',
+		alnAll = '{path}/{sample}.tagged.Bcell.alignmentsAll.txt',
+		alns = '{path}/{sample}.tagged.Bcell.alignments.txt',
+		viewalns = '{path}/{sample}.tagged.Bcell.aligned_view.txt'
+	shell:
+		"""
+			{MIXCR} align -f -s hsa -p rna-seq -OallowPartialAlignments=true {input} {output.vdj1} > {output.rep} ;
+			{MIXCR} assemblePartial -f {output.vdj1} {output.rescue1} ;
+			{MIXCR} assemblePartial -f {output.rescue1} {output.rescue2} ;
+			{MIXCR} assemble -f {output.rescue2} {output.clones} ;
+			{MIXCR} exportClones -f {output.clones} {output.clnstxt} ;
+			{MIXCR} exportClones -f -c TRB {output.clones} {output.trb} ;
+			{MIXCR} exportClones -f -c IG {output.clones} {output.igh} ;
+			{MIXCR} exportAlignments -f -c IG {output.rescue2} {output.alnAll} ;
+			{MIXCR} exportAlignments -f -c IG -readID -vGene -vHitScore -dGene -dHitScore -jGene \
+				-jHitScore -cGene -cHitScore -nMutations VRegion -aaMutations VRegion -nMutations JRegion -aaMutations JRegion -nMutations DRegion -aaMutations DRegion {output.rescue2} {output.alns} ;
+			{MIXCR} exportAlignmentsPretty {output.rescue2} {output.viewalns} ;
+		"""
+
+rule ig_allcells_process:
+	input: '{path}/{sample}.tagged.allcell.fastq'
+	output: vdj1 = '{path}/{sample}.tagged.allcell.vdjca',
+		rep = '{path}/{sample}.tagged.allcell.reportTxt',
+		rescue1 = '{path}/{sample}.tagged.allcell.rescued1.vdjca',
+		rescue2 = '{path}/{sample}.tagged.allcell.rescued2.vdjca',
+		clones = '{path}/{sample}.tagged.allcell.clns',
+		clnstxt = '{path}/{sample}.tagged.allcell.clones.txt',
+		trb = '{path}/{sample}.tagged.allcell.clones.TRB.txt',
+		igh = '{path}/{sample}.tagged.allcell.clones.IGH.txt',
+		alnAll = '{path}/{sample}.tagged.allcell.alignmentsAll.txt',
+		alns = '{path}/{sample}.tagged.allcell.alignments.txt',
+		viewalns = '{path}/{sample}.tagged.allcell.aligned_view.txt'
+	shell:
+		"""
+			{MIXCR} align -f -s hsa -p rna-seq -OallowPartialAlignments=true {input} {output.vdj1} > {output.rep} ;
+			{MIXCR} assemblePartial -f {output.vdj1} {output.rescue1} ;
+			{MIXCR} assemblePartial -f {output.rescue1} {output.rescue2} ;
+			{MIXCR} assemble -f {output.rescue2} {output.clones} ;
+			{MIXCR} exportClones -f {output.clones} {output.clnstxt} ;
+			{MIXCR} exportClones -f -c TRB {output.clones} {output.trb} ;
+			{MIXCR} exportClones -f -c IG {output.clones} {output.igh} ;
+			{MIXCR} exportAlignments -f -c IG {output.rescue2} {output.alnAll} ;
+			{MIXCR} exportAlignments -f -c IG -readID -vGene -vHitScore -dGene -dHitScore -jGene \
+				-jHitScore -cGene -cHitScore -nMutations VRegion -aaMutations VRegion -nMutations JRegion -aaMutations JRegion -nMutations DRegion -aaMutations DRegion {output.rescue2} {output.alns} ;
+			{MIXCR} exportAlignmentsPretty {output.rescue2} {output.viewalns} ;
+		"""
+
+
+
+rule ig_stats_Bcell:
+	input: 	a='{path}/{sample}_expression_matrix.txt',
+		b='{path}/{sample}.tagged.Bcell.alignments.txt'
+	output: '{path}/{sample}.Bcell.IGstats.txt'
+	shell: "Rscript bin/Rscripts/Mixcr_analysis.R {wildcards.sample} ; "
+
+rule ig_stats_allcell:
+	input:  a='{path}/{sample}_expression_matrix.txt',
+		b='{path}/{sample}.tagged.allcell.alignments.txt'
+	output: '{path}/{sample}.allcell.IGstats.txt'
+	shell: "Rscript bin/Rscripts/Mixcr_analysis.allcell.R {wildcards.sample} ; "
+
+
+rule colorTNSE:
+	input: '{path}/{sample}.allcells.descriptions.txt'
+	output: '{path}/{sample}.HCLC_color.eps'
+	shell: "Rscript bin/Rscripts/Dropseq_tsne.bcell.hclcplot.R {wildcards.sample} ; "
+
+rule enumerate_Bcell:
+        input: '{path}/{sample}.tagged.Bcell.fastq'
+        output: '{path}/{sample}.tagged.Bcell.numerated.cell.list'
+        threads: 1
+        shell:
+                """
+                   	awk 'NR % 4 ==1' {input} | cut -d':' -f 10 | nl > {output}
+                """

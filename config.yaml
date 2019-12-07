@@ -1,45 +1,48 @@
-# Sample names, make sure they are stored in DATADIR with suffix {Samples}_R1.fastq.gz
 Samples:
-    day4_1m:
-    day7_1m:
-    day10_1m:
-    day14_1m:
+    day4_0.25m:
+    day7_0.25m:
 
-# directory where fastq files are stored
-DATADIR: /workdir/fw262/ShaoPei/pipeline/testData_small 
-# genome reference
-GENOMEREF: /workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
-# gene annotations in GTF format
-REFGTF: /workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
-
-# define global variables and cell ID sequence range
-GLOBAL:
-    allowed_mismatch: 10
-    BC_range: # cell barcode
-        first: 1
-        last: 16
-    UMI_range: # molecular ID
-        first: 17
-        last: 26 # 28 for v3, up to 26 for v2 in 10X genomics
-
-# expected number of cells in each experiment
-expectedCells: 5000
-# minimum coverage required to be considered in HMM feature definition
-MINCOV: 5
-CORES: 10 
-
-# required programs
-# please provide the paths to these programs
-PICARD: scripts/outside_tools/picard.jar
-DROPSEQ: scripts/outside_tools/Drop-seq_tools-1.12/
-STAREXEC: scripts/outside_tools/STAR-2.5/bin/Linux_x86_64/STAR
-FASTQCEXEC: scripts/outside_tools/fastqc
-SingleCellHMM: scripts/SingleCellHMM_2.bash # included in scripts folder
-generate_refFlat_script: scripts/generate_refFlat_script_both.R # included in scripts folder
-GTFTOGENEPRED: scripts/gtfToGenePred # included in scripts folder https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html https://github.com/igordot/genomics/blob/master/notes/converting-files.md
-Rscript: /programs/bin/R/Rscript
-# samtools also required
+GENOMEREF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
+REFGTF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
 
 SAMPWDIR:   sampwdir/
+DATADIR: /workdir/fw262/ShaoPei/pipeline/testData_small 
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356 #day 4
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356: # day 7 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day4_day7/HGH27BGXB_Mantri_10416848_cellranger_mkfastq_output_10June19/outs/fastq_path/Project_10830_11356: # day 7 RV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day10/HGGFCBGX5_cellranger_mkfastq_output_27March2018/outs/fastq_path/Project_9385_10362/Sample_72254_HGGFCBGX5_LV: # day 10 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day10/HGGFCBGX5_cellranger_mkfastq_output_27March2018/outs/fastq_path/Project_9385_10362/Sample_72255_HGGFCBGX5_RV: # day 10 RV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day14/HWYLJBGX5_cellranger_mkfastq_output_LV_RV_18May2018/outs/fastq_path/Project_9596_10362/Sample_75018_HWYLJBGX5_LV: # day 14 LV
+    #/workdir/mm2937/chicken/cellranger_mkfastq_output/day14/HWYLJBGX5_cellranger_mkfastq_output_LV_RV_18May2018/outs/fastq_path/Project_9596_10362/Sample_75019_HWYLJBGX5_RV: # day 14 RV
+    
 TMPDIR: temp
-PIPELINE_MAJOR: results_out
+
+PIPELINE_MAJOR: results_out_mincov20_merge400
+
+SPECIES:
+    - chicken
+GLOBAL:
+    allowed_mismatch: 10
+    BC_range:
+        first: 1
+        last: 16
+    UMI_range:
+        first: 17
+        last: 26 # 28 for v3, up to 26 for v2
+
+BOWTIE: /programs/bowtie2-2.3.0/bowtie2
+PICARD: /programs/picard-tools-2.1.1/picard.jar
+DROPSEQ: /home/av486/Desktop/Tools/Drop-seq_tools-1.12/
+GTFTOGENEPRED: /fs/cbsuvlaminck2/workdir/fw262/tools/gtfToGenePred
+#MIXCR: /workdir/fw262/tools/mixcr-2.1.5/mixcr
+STAREXEC: /programs/STAR-2.5/bin/Linux_x86_64/STAR
+FASTQCEXEC: fastqc
+CORES: 10 
+expectedCells: 5000
+MINCOV: 20
+MERGEBP: 500
+
+#REFFLAT: /workdir/References/Chick/GRCg6a/refFlat_ensembl.refFlat.filled.refFlat
+#REFFLAT_HMM_withDir: /workdir/fw262/ShaoPei/chickenAll/all_Aligned_sorted_2_merge500_5reads.bed.withDir.refFlat_ensembl.refFlat.filled.refFlat
+#REFFLAT_HMM_noDir: /workdir/fw262/ShaoPei/chickenAll/all_Aligned_sorted_2_merge500_5reads.bed.noDir.refFlat_ensembl.refFlat.filled.refFlat
+#METAREF: /workdir/References/Chick/GRCg6a/STAR_noAnno
