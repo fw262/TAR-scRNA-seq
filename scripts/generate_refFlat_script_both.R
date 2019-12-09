@@ -1,3 +1,74 @@
+checkIfExistGene_noDir<-function(input,gene_ref){
+  chrom<-input[[1]]
+  startPos<-as.numeric(input[[2]])
+  endPos<-as.numeric(input[[3]])
+  gene_ref<-gene_ref # bed of entire genes
+
+  # 1: either partially in or completely inside gene
+  chrMatch_gene<-(chrom==gene_ref$chr)
+  qinrstartMatch<-(startPos>=gene_ref$start)&(startPos<=gene_ref$end)
+  qinrendMatch<-(endPos<=gene_ref$end)&(endPos>=gene_ref$start)
+  qinroutGeneAll_gene<-(chrMatch_gene*qinrstartMatch*qinrendMatch) # query completely inside ref
+  rinqstartMatch<-(startPos<(gene_ref$start))
+  rinqendMatch<-(endPos>(gene_ref$end))
+  rinqoutGeneAll<-(chrMatch_gene*rinqstartMatch*rinqendMatch) # ref completely inside query
+  # also check partial overlap from beginning
+  partialStart<-(chrMatch_gene*rinqstartMatch*qinrendMatch)
+  partialEnd<-(chrMatch_gene*qinrstartMatch*rinqendMatch)
+  if(sum(qinroutGeneAll_gene)|sum(rinqoutGeneAll)|sum(partialStart)|sum(partialEnd)){
+    # g's are for gene names
+    g1<-as.character(gene_ref$gene[as.logical(qinroutGeneAll_gene)])
+    g2<-as.character(gene_ref$gene[as.logical(rinqoutGeneAll)])
+    g3<-as.character(gene_ref$gene[as.logical(partialStart)])
+    g4<-as.character(gene_ref$gene[as.logical(partialEnd)])
+    gAll<-unique(c(g1,g2,g3,g4))
+    return(paste(c(gAll,"1"),collapse="_"))
+  }else{
+    return(0)
+  }
+}
+
+checkIfExistGene2<-function(input,gene_ref){
+  chrom<-input[[1]]
+  startPos<-as.numeric(input[[2]])
+  endPos<-as.numeric(input[[3]])
+  direction<-input[[4]]
+  gene_ref<-gene_ref # bed of entire genes
+  #print(paste(chrom,startPos,endPos))
+
+  # 1: either partially in or completely inside gene
+  chrMatch_gene<-(chrom==gene_ref$chr)
+  dirMatch_gene<-(direction==gene_ref$direction)
+  qinrstartMatch<-(startPos>=gene_ref$start)&(startPos<=gene_ref$end)
+  qinrendMatch<-(endPos<=gene_ref$end)&(endPos>=gene_ref$start)
+  qinroutGeneAll_gene<-(chrMatch_gene*qinrstartMatch*qinrendMatch*dirMatch_gene) # query completely inside ref
+  rinqstartMatch<-(startPos<(gene_ref$start))
+  rinqendMatch<-(endPos>(gene_ref$end))
+  rinqoutGeneAll<-(chrMatch_gene*rinqstartMatch*rinqendMatch*dirMatch_gene) # ref completely inside query
+  # also check partial overlap from beginning
+  partialStart<-(chrMatch_gene*rinqstartMatch*qinrendMatch*dirMatch_gene)
+  partialEnd<-(chrMatch_gene*qinrstartMatch*rinqendMatch*dirMatch_gene)
+  if(sum(qinroutGeneAll_gene)|sum(rinqoutGeneAll)|sum(partialStart)|sum(partialEnd)){
+    # g's are for gene names
+    g1<-as.character(gene_ref$gene[as.logical(qinroutGeneAll_gene)])
+    g2<-as.character(gene_ref$gene[as.logical(rinqoutGeneAll)])
+    g3<-as.character(gene_ref$gene[as.logical(partialStart)])
+    g4<-as.character(gene_ref$gene[as.logical(partialEnd)])
+    gAll<-unique(c(g1,g2,g3,g4))
+    # d's are for directions
+    d1<-as.character(gene_ref$direction[as.logical(qinroutGeneAll_gene)])
+    d2<-as.character(gene_ref$direction[as.logical(rinqoutGeneAll)])
+    d3<-as.character(gene_ref$direction[as.logical(partialStart)])
+    d4<-as.character(gene_ref$direction[as.logical(partialEnd)])
+    dAll<-unique(c(d1,d2,d3,d4))
+    return(paste(c(gAll,dAll,"1"),collapse="_"))
+  }else{
+    #return(paste(c(direction,"0"),collapse="_"))
+    return(0)
+  }
+}
+
+
 #UNCOMMENT BELOW BEFORE EXITING
 # MAKE SURE CHROM IN REFERENCE AND HMM BED MATCH EACH OTHER
 args=(commandArgs(TRUE))

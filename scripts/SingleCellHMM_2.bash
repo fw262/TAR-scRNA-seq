@@ -9,7 +9,8 @@ PL=$5
 ${CORE:=5}
 ${MINCOV:=5}
 ${MERGEBP:=500}
-${PL:=./scripts}
+${PL:=/fs/cbsuvlaminck2/workdir/fw262/ShaoPei/pipeline/scripts}
+#${PL:=./scripts}
 
 PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev`
 tmp="HMM_features"
@@ -51,6 +52,7 @@ wait_a_second() {
 for f in chr*.bed
 do 
 wait_a_second
+echo $PWD
 R --vanilla --slave --args $(pwd) ${f}  < ${PL}/SingleCellHMM.R  > ${f}.log 2>&1 &
 done
 #R --vanilla --slave --args $(pwd) ${PREFIX}_split.sorted.bed.gz  < ${PL}/SingleCellHMM.R 
