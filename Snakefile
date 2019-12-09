@@ -1,7 +1,10 @@
 #################################################
-# Michael Wang			#
-# TAR scRNA-seq analysis			#
-# last edited Dec. 6, 2019			#
+# Roozbeh Abedini Nassab			#
+# Drop-Seq Snakemake pipeline			#
+# Adapted from the pipeline by Hoohm:		#
+# https://github.com/Hoohm/dropseqpipe		#
+# And Dr. De Vlaminck's work on it.		#
+# last edited July, 4, 2017			#
 #################################################
 import pdb
 
@@ -41,6 +44,7 @@ gtfToGenePred=config['GTFTOGENEPRED']
 
 rule all:
 ############## original default call here
+	#input: expand('{splitBams}.out',splitBams=config['splitBams'])
 	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_expression_matrix.txt.gz', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_Aligned_sorted_2.bam.bai', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
@@ -302,27 +306,26 @@ rule indexBamFiles:
 	shell:
 		"""samtools index {input}"""
 
-rule mergeBamFiles:
-	input: 
-		samples=expand('{PIPELINE_MAJOR}/{sample}/{sample}_Aligned_sorted_2.bam',PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	output: 'combined_bam.bam'
-	shell:
-		"""samtools merge {output} {input}"""
+#rule mergeBamFiles:
+#	input: 
+#		samples=expand('{PIPELINE_MAJOR}/{sample}/{sample}_Aligned_sorted_2.bam',PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+#	output: 'combined_bam.bam'
+#	shell:
+#		"""samtools merge {output} {input}"""
 		
 rule calcHMMbed:
 	input:
-		samples='combined_bam.bam'
+		samples='{path}/{sample}_Aligned_sorted_2.bam'
 	output:
-		out='combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
+		out='{path}/{sample}_Aligned_sorted_2_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
 	run:
 		shell("bash scripts/SingleCellHMM_2.bash {input} {CORES} {MINCOV} {MERGEBP}")
 
 rule calcHMMrefFlat:
-	input:	'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
-	output: 'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat',
-			'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
+	input:	'{path}/{sample}_Aligned_sorted_2_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz'
+	output: '{path}/{sample}_Aligned_sorted_2_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
 	shell:
-		"""Rscript scripts/generate_refFlat_script_both.R refFlat.refFlat {input}"""
+		"""Rscript scripts/generate_refFlat_script_onlyNoDir.R refFlat.refFlat {input}"""
 
 rule MergeBamAlignment:
 	input:  unmapped = '{path}/{sample}_tagged_unmapped.bam', mapped = '{path}/{sample}_Aligned_sorted_2.bam'
@@ -352,23 +355,23 @@ rule stage3:
                 CREATE_INDEX=true
                 """
 		
-rule stage3_withDir:
-	input:	merged = '{path}/{sample}_merged.bam',
-		reference ='combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.withDir.refFlat.refFlat'
-	output: '{path}/{sample}_HMM_tagged_withDir.bam'
-	threads: 4
-        shell:
-                """
-                {DROPSEQ}/TagReadWithGeneExon\
-                O={output}\
-                I={input.merged}\
-                ANNOTATIONS_FILE={input.reference}\
-                TAG=GE\
-                CREATE_INDEX=true
-                """
+#rule stage3_withDir:
+#	input:	merged = '{path}/{sample}_merged.bam',
+#		reference ='{path}/{sample}_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
+#	output: '{path}/{sample}_HMM_tagged_withDir.bam'
+#	threads: 4
+#        shell:
+#               """
+#                {DROPSEQ}/TagReadWithGeneExon\
+#                O={output}\
+#                I={input.merged}\
+#                ANNOTATIONS_FILE={input.reference}\
+#                TAG=GE\
+#                CREATE_INDEX=true
+#                """
 rule stage3_noDir:
         input:  merged = '{path}/{sample}_merged.bam',           
-	        reference = 'combined_bam_HMM_features/combined_bam_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
+	        reference = '{path}/{sample}_Aligned_sorted_2_merge'+str(config['MERGEBP'])+'_'+str(config['MINCOV'])+'reads.bed.gz.noDir.refFlat.refFlat'
 	output: '{path}/{sample}_HMM_tagged_noDir.bam'
 	threads: 4
         shell:
@@ -398,19 +401,19 @@ rule extract_expression:
 		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_dge.summary.txt \
 		NUM_CORE_BARCODES={params.numbarcodes}"""
 
-rule extract_HMM_expression_withDir:
-	input: 
-		bam='{path}/{sample}_HMM_tagged_withDir.bam'
-	output: '{path}/{sample}_expression_matrix_HMM_withDir.txt.gz'
-	params:
-		sample = '{sample}',
-		numbarcodes = config["expectedCells"]
-	shell:
-		"""{DROPSEQ}/DigitalExpression\
-		I={input.bam}\
-		O={output}\
-		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_dge.summary.txt \
-		NUM_CORE_BARCODES={params.numbarcodes}"""
+#rule extract_HMM_expression_withDir:
+#	input: 
+#		bam='{path}/{sample}_HMM_tagged_withDir.bam'
+#	output: '{path}/{sample}_expression_matrix_HMM_withDir.txt.gz'
+#	params:
+#		sample = '{sample}',
+#		numbarcodes = config["expectedCells"]
+#	shell:
+#		"""{DROPSEQ}/DigitalExpression\
+#		I={input.bam}\
+#		O={output}\
+#		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_dge.summary.txt \
+#		NUM_CORE_BARCODES={params.numbarcodes}"""
 		
 rule extract_HMM_expression_noDir:
 	input: 
@@ -429,8 +432,8 @@ rule extract_HMM_expression_noDir:
 		
 rule dummyOut:
 	input: gene='{path}/{sample}_expression_matrix.txt.gz',
-	       hmm1='{path}/{sample}_expression_matrix_HMM_withDir.txt.gz',
-		   hmm2='{path}/{sample}_expression_matrix_HMM_noDir.txt.gz'
+	       #hmm1='{path}/{sample}_expression_matrix_HMM_withDir.txt.gz',
+	       hmm2='{path}/{sample}_expression_matrix_HMM_noDir.txt.gz'
 
 	output: '{path}/{sample}_finish.txt'
 	shell:
