@@ -14,7 +14,7 @@ Please install the Snakemake workflow managment system as instructed on their we
 
 2. [Drop-seq Computational Tools](https://github.com/broadinstitute/Drop-seq/releases)
 
-Download the latest release of the Drop-seq tools (i.e. the Drop-seq_tools-2.3.0.zip package), unzip the folder and add a link to this folder in the config.yaml file.
+Download the Drop-seq tools v1.13 (i.e. conda install -c bioconda dropseq_tools=1.13).
 
 3. [Picard Tools](https://broadinstitute.github.io/picard/)
 
