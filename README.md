@@ -26,6 +26,8 @@ Download the Drop-seq tools v1.13 (i.e. conda install -c bioconda dropseq_tools=
 
 7. [Samtools](http://www.htslib.org/)
 
+8. [groHMM] (https://bioconductor.org/packages/release/bioc/html/groHMM.html)
+
 ## Procedure
 ### 1. Download required software.
 
