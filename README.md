@@ -35,7 +35,9 @@ Please ensure to include all required software before starting.
 
 Please download all of the files in this repository including the scripts folder.
 
-### 3. Move or create a symbolic link to fastq files inthe same directory.
+### 2.1 Edit the SingleCellHMM_MW.bash file to include full path of SingleCellHMM.R script file
+
+### 3. Move or create a symbolic link to fastq files in the same directory.
 
 Please move all your fastq sequencing files to one data directory. Please ensure the sequence files end in "{sample}\_R1.fastq.gz" and "{sample}\_R2.fastq.gz" in your data directory. You can also create a symbolic link of your sequence files into a data directory. 
 
