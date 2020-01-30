@@ -84,7 +84,7 @@ rule convertToRefFlat1:
         output: "refFlat.refFlat"
         shell:
               	"""
-                {gtfToGenePred} -genePredExt -geneNameAsName2 {input} refFlat.tmp
+                {gtfToGenePred} -genePredExt {input} refFlat.tmp
                 paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output}
                 rm refFlat.tmp
                 """
