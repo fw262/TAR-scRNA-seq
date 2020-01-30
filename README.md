@@ -7,6 +7,11 @@ TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflo
 
 ## Required Software
 This workflow requires the following packages listed below.
+0. Install TAR-scRNA-seq package.
+
+```
+$ git clone https://github.com/fw262/TAR-scRNA-seq
+```
 
 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
@@ -31,10 +36,6 @@ groHMM can also be installed through [conda](https://anaconda.org/bioconda/bioco
 This tool is used to convert gtf annotation files to refFlat format.
 
 ## Procedure
-### 0. Install TAR-scRNA-seq package.
-```
-$ git clone https://github.com/fw262/TAR-scRNA-seq
-```
 ### 1. Download required software.
 
 Please ensure to include all required software before starting.
