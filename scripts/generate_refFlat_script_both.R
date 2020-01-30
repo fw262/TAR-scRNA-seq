@@ -105,12 +105,24 @@ HMManno_bare$end<-as.numeric(HMManno_bare$end)
 outFile=paste0(input,".noDir.",refName)
 
 ########################################################
-source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
+#source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
 
 df<-HMManno_bare
 #HMManno_bare_sample<-df[sample(nrow(df),10),]
 #HMManno$inAnno<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExist,exon_ref=gene_gtf_bare,gene_ref=gene_ref_bare)
-HMManno$inGene<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene_noDir,gene_ref=gene_ref_bare)
+
+if(!require("parallel")){
+	install.packages("parallel")
+}
+
+library(parallel)
+num_cores<-detectCores()
+num_coresUse<-floor(num_cores/5)
+clust<-makeCluster(num_coresUse)
+HMManno$inGene<-parApply(cl = clust,X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene_noDir,gene_ref=gene_ref_bare)
+stopCluster(clust)
+
+#HMManno$inGene<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene_noDir,gene_ref=gene_ref_bare)
 
 
 ########################### uncomment below to make refFlat file
@@ -140,12 +152,20 @@ write.table(HMMannoReady,outFile,sep="\t",row.names=F,col.names = F, quote=F)
 outFile=paste0(input,".withDir.",refName)
 
 ########################################################
-source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
+#source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
 
 df<-HMManno_bare
 #HMManno_bare_sample<-df[sample(nrow(df),10),]
 #HMManno$inAnno<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExist,exon_ref=gene_gtf_bare,gene_ref=gene_ref_bare)
-HMManno$inGene<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene2,gene_ref=gene_ref_bare)
+#HMManno$inGene<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene2,gene_ref=gene_ref_bare)
+
+library(parallel)
+num_cores<-detectCores()
+num_coresUse<-floor(num_cores/5)
+clust<-makeCluster(num_coresUse)
+HMManno$inGene<-parApply(cl = clust,X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene2,gene_ref=gene_ref_bare)
+stopCluster(clust)
+
 
 
 ########################### uncomment below to make refFlat file
