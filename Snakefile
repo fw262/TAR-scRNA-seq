@@ -22,6 +22,7 @@ TMPDIR = config['TMPDIR']
 gtffile=config['REFGTF']
 MERGEBP=str(config['MERGEBP'])
 THRESH=str(config['THRESH'])
+#FULLSCRIPTPATH=str(config['FULLSCRIPTPATH'])
 ########################################################################################################
 # Executables
 ########################################################################################################

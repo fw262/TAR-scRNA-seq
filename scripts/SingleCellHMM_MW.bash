@@ -13,8 +13,9 @@ ${MERGEBP:=500}
 ${THRESH:=10000000}
 #${PL:=/fs/cbsuvlaminck2/workdir/fw262/ShaoPei/pipeline/scripts}
 #${PL:=scripts}
-${PL:=/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/scripts}
-echo `ls $PL`
+#${PL:=/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/scripts}
+CURDIR=`pwd`
+${PL:=${CURDIR}/scripts}
 
 reads=`samtools view -q 255 $INPUT_BAM | wc -l`
 echo "Number of aligned reads is $reads"
@@ -33,6 +34,7 @@ echo "INPUT_BAM                 $INPUT_BAM"
 echo "temp folder               $TMPDIR"
 echo "number Of thread          $CORE"
 echo "minimum coverage		$MINCOV"
+echo "thresholded at 1 in $THRESH reads"
 echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
 echo "To avoid that, split reads into small blocks before input to groHMM"
