@@ -20,13 +20,13 @@ Download the Drop-seq tools v1.13 (i.e. conda install -c bioconda dropseq_tools=
 
 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
-5. [Fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+5. [R](https://www.r-project.org/)
 
-6. [R](https://www.r-project.org/)
+6. [Samtools](http://www.htslib.org/)
 
-7. [Samtools](http://www.htslib.org/)
+7. [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html)
 
-8. [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html)
+8. [gtftogenepred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html) Used to convert gtf to refFlat format.
 
 ## Procedure
 ### 1. Download required software.
