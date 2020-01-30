@@ -32,9 +32,9 @@ This tool is used to convert gtf annotation files to refFlat format.
 
 ## Procedure
 ### 0. Install TAR-scRNA-seq package.
-'''
+```
 $ git clone https://github.com/fw262/TAR-scRNA-seq
-'''
+```
 ### 1. Download required software.
 
 Please ensure to include all required software before starting.
