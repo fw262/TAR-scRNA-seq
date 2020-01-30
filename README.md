@@ -7,6 +7,7 @@ TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflo
 
 ## Required Software
 This workflow requires the following packages listed below.
+
 0. Install TAR-scRNA-seq package.
 
 ```
