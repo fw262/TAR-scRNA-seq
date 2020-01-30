@@ -54,7 +54,7 @@ Please combine and move the fastq files for each experiment into one data direct
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 - **Samples**: Samples prefix (before the \_R1.fastq.gz)
 - **GENOMEREF**: Path to your genome assembly file.
-- **REFGTF**: Path to your gene annotations in gtf format.
+- **REFGTF**: Path to your gene annotations in gtf format. **NOTE** If your gene annotation file is already in the refFlat format, please rename the annotation file to "refFlat.refFlat" and store in the same directory as the Snakefile and config.yaml files.
 - **SAMPWDIR**: Directory where summary information is stored.
 - **DATADIR**: Path to where the sequencing samples ({sample}\_R1.fastq.gz) are stored.
 - **TMPDIR**: Directory to store temporary files.
