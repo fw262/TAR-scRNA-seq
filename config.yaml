@@ -14,10 +14,10 @@ PIPELINE_MAJOR: results_out # folder where scRNA-seq expression matrices are goi
 
 GLOBAL:
     allowed_mismatch: 10 # outFilterMismatchNmax parameter for STAR alignment
-    BC_range:
+    BC_range: # barcode range
         first: 1
         last: 16
-    UMI_range:
+    UMI_range: # unique molecular identifier range
         first: 17
         last: 28 # 28 for v3, up to 26 for v2
 
