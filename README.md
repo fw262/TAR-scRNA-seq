@@ -54,7 +54,7 @@ Please change the variable names in the config.yaml as required for your analysi
 - **GLOBAL**: Define global variables for pipeline including number of mismatches allowed in STAR, cell barcode base pair range in read 1, and UMI base pair range in read 1.
 - **PICARD**: Path to the picard tools .jar file.
 - **DROPSEQ**: Path to the Dropseq tools folder.
-- **GTFTOGENEPRED**: Path to gtfToGenePred tool. **NOTE** If your reference file is already in the refFlat format, please rename the annotation file to "refFlat.refFlat" and store in the same directory as the Snakefile and config.yaml files.
+- **GTFTOGENEPRED**: Path to gtfToGenePred tool. **NOTE** If your gene annotation file is already in the refFlat format, please rename the annotation file to "refFlat.refFlat" and store in the same directory as the Snakefile and config.yaml files.
 - **STAREXEC**: Path to the STAR aligner tool.
 - **CORES**: Number of cores used in each step of the pipeline. To run multiple samples in parallel, please specify total number of cores in the snakemake command (i.e. "snakemake -j {total cores}").
 - **expectedCells**: Expected number of cells in each scRNA-seq experiment.
