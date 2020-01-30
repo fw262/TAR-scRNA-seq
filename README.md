@@ -24,11 +24,17 @@ Download the Drop-seq tools v1.13 (i.e. conda install -c bioconda dropseq_tools=
 
 8. [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html)
 
+groHMM can also be installed through [conda](https://anaconda.org/bioconda/bioconductor-grohmm).
+
 9. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
 ## Procedure
+### 0. Install TAR-scRNA-seq package.
+
+$ git clone https://github.com/fw262/TAR-scRNA-seq
+
 ### 1. Download required software.
 
 Please ensure to include all required software before starting.
