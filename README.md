@@ -8,12 +8,6 @@ TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflo
 ## Required Software
 This workflow requires the following packages listed below.
 
-0. Install TAR-scRNA-seq package.
-
-```
-$ git clone https://github.com/fw262/TAR-scRNA-seq
-```
-
 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
 2. [Drop-seq Computational Tools v1.13](https://github.com/broadinstitute/Drop-seq/releases)
@@ -37,19 +31,22 @@ groHMM can also be installed through [conda](https://anaconda.org/bioconda/bioco
 This tool is used to convert gtf annotation files to refFlat format.
 
 ## Procedure
-### 1. Download required software.
+
+### 1. Clone this repository.
+
+```
+$ git clone https://github.com/fw262/TAR-scRNA-seq
+```
+
+### 2. Download required software listed above.
 
 Please ensure to include all required software before starting.
-
-### 2. Download Snakefile, config.yaml, and the scripts folder.
-
-Please download all of the files in this repository including the scripts folder and its content.
 
 ### 3. Store or link paired end sequencing files.
 
 Please combine and move the fastq files for each experiment into one data directory. Please ensure the sequence files end in "{sample}\_R1.fastq.gz" and "{sample}\_R2.fastq.gz" in your data directory.
 
-### 4. Edit the config.yaml file as needed for your experiment.
+### 4. Edit the config.yaml file for your experiment.
 
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 - **Samples**: Samples prefix (before the \_R1.fastq.gz)
