@@ -11,6 +11,7 @@ This workflow requires the following packages listed below.
 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
 2. [Drop-seq Computational Tools v1.13](https://github.com/broadinstitute/Drop-seq/releases)
+
 Run the following command in your command line.
 ```
 conda install -c bioconda dropseq_tools=1.13
@@ -34,6 +35,7 @@ This tool is used to convert gtf annotation files to refFlat format.
 ## Procedure
 
 ### 1. Clone this repository.
+
 Run the following command in your command line.
 ```
 git clone https://github.com/fw262/TAR-scRNA-seq
