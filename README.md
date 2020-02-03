@@ -11,9 +11,9 @@ This workflow requires the following packages listed below.
 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
 2. [Drop-seq Computational Tools v1.13](https://github.com/broadinstitute/Drop-seq/releases)
-
-Download the Drop-seq tools v1.13 (i.e. conda install -c bioconda dropseq_tools=1.13).
-
+```
+conda install -c bioconda dropseq_tools=1.13).
+```
 3. [Picard Tools](https://broadinstitute.github.io/picard/)
 
 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
@@ -35,7 +35,7 @@ This tool is used to convert gtf annotation files to refFlat format.
 ### 1. Clone this repository.
 
 ```
-$ git clone https://github.com/fw262/TAR-scRNA-seq
+git clone https://github.com/fw262/TAR-scRNA-seq
 ```
 
 ### 2. Download required software listed above.
