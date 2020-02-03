@@ -73,6 +73,10 @@ Please change the variable names in the config.yaml as required for your analysi
 
 Please ensure the Snakefile and config.yaml files as well as the scripts folder are in the directory where you intend to run the pipeline.
 
+## Test datset
+
+A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. You should be able to run through this small dataset without errors, generating gene and TAR expression matrices.
+
 ## Output
 
 - Digital expression matrix for gene features is stored in "results_out/{sample}/{sample}\_gene_expression_matrix.txt.gz".
