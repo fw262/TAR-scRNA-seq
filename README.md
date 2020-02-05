@@ -10,11 +10,11 @@ This workflow requires the following packages listed below.
 
 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
-2. [Drop-seq Computational Tools v1.13](https://github.com/broadinstitute/Drop-seq/releases)
+2. [Drop-seq Computational Tools v2.3.0](https://github.com/broadinstitute/Drop-seq/releases)
 
 Run the following command in your command line.
 ```
-conda install -c bioconda dropseq_tools=1.13
+conda install -c bioconda dropseq_tools
 ```
 3. [Picard Tools](https://broadinstitute.github.io/picard/)
 
