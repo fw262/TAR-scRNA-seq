@@ -36,13 +36,6 @@ gtfToGenePred=config['GTFTOGENEPRED']
 rule all:
 ############## original default call here
 	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_expression_matrix.txt.gz', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_Aligned_sorted_2.bam.bai', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_expression_matrix.txt.gz', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}.tagged.Bcell.numerated.cell.list', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples']) #### this works until the end
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}.allcells.descriptions.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_STAR_Aligned.out.sam', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
-	#input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_unaligned_r2.bam', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 
 #####################################################################################
 # create sequence dictionary using picard tools
@@ -84,7 +77,7 @@ rule convertToRefFlat1:
         output: "refFlat.refFlat"
         shell:
               	"""
-                {gtfToGenePred} -genePredExt {input} refFlat.tmp
+                {gtfToGenePred} -genePredExt -geneNameAsName2 {input} refFlat.tmp
                 paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output}
                 rm refFlat.tmp
                 """
@@ -178,7 +171,7 @@ rule stage1:
 		INPUT=/dev/stdin\
 		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
 		\
-		{DROPSEQ}/FilterBAM TAG_REJECT=XQ\
+		{DROPSEQ}/FilterBam TAG_REJECT=XQ\
 		INPUT=/dev/stdin\
 		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
 		\
@@ -308,7 +301,7 @@ rule stage3:
         threads: CORES
         shell:
                 """
-		{DROPSEQ}/TagReadWithGeneExon\
+		{DROPSEQ}/TagReadWithGeneExonFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
@@ -323,13 +316,14 @@ rule stage3_withDir:
 	threads: CORES
         shell:
                 """
-                {DROPSEQ}/TagReadWithGeneExon\
+                {DROPSEQ}/TagReadWithGeneExonFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
                 TAG=GE\
                 CREATE_INDEX=true
                 """
+
 rule stage3_noDir:
         input:  merged = '{path}/{sample}_merged.bam',           
 	        reference = 'TAR_reads.bed.gz.noDir.refFlat.refFlat'
@@ -337,7 +331,7 @@ rule stage3_noDir:
 	threads: CORES
         shell:
                 """
-                {DROPSEQ}/TagReadWithGeneExon\
+                {DROPSEQ}/TagReadWithGeneExonFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
