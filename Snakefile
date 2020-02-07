@@ -301,11 +301,11 @@ rule stage3:
         threads: CORES
         shell:
                 """
-		{DROPSEQ}/TagReadWithGeneExonFunction\
+		{DROPSEQ}/TagReadWithGeneFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
-                TAG=GE\
+                #TAG=GE\
                 CREATE_INDEX=true
                 """
 		
@@ -316,11 +316,11 @@ rule stage3_withDir:
 	threads: CORES
         shell:
                 """
-                {DROPSEQ}/TagReadWithGeneExonFunction\
+                {DROPSEQ}/TagReadWithGeneFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
-                TAG=GE\
+                #TAG=GE\
                 CREATE_INDEX=true
                 """
 
@@ -331,11 +331,11 @@ rule stage3_noDir:
 	threads: CORES
         shell:
                 """
-                {DROPSEQ}/TagReadWithGeneExonFunction\
+                {DROPSEQ}/TagReadWithGeneFunction\
                 O={output}\
                 I={input.merged}\
                 ANNOTATIONS_FILE={input.reference}\
-                TAG=GE\
+                #TAG=GE\
                 CREATE_INDEX=true
                 """
 
