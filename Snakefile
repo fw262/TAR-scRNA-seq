@@ -1,10 +1,9 @@
 #################################################
-# Roozbeh Abedini Nassab			#
-# Drop-Seq Snakemake pipeline			#
+# Michael Wang					#
+# uTAR Snakemake pipeline			#
 # Adapted from the pipeline by Hoohm:		#
 # https://github.com/Hoohm/dropseqpipe		#
-# And Dr. De Vlaminck's work on it.		#
-# last edited July, 4, 2017			#
+# last edited April 1, 2020			#
 #################################################
 import pdb
 ########################################################################################################
