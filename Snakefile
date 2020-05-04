@@ -3,7 +3,7 @@
 # uTAR Snakemake pipeline			#
 # Adapted from the pipeline by Hoohm:		#
 # https://github.com/Hoohm/dropseqpipe		#
-# last edited April 1, 2020			#
+# last edited May 1, 2020			#
 #################################################
 import pdb
 ########################################################################################################
