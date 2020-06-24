@@ -90,3 +90,11 @@ TAR features, listed in the refFlat and expression matrix files, are named based
 
 - **chr3_40767549_40767699_+\_187_0** means that this TAR feature is located at chr3:40767549-40767699 on the positive strand with a total read coverage of 187. The "\_0" means that this is a **uTAR** feature, no overlap with an existing gene annotation.
 - **chr6_42888199_42888349_-\_983_RPS6KA2_+\_1** means that this TAR feature is located at chr6:42888199-42888349 on the negative strand with a total read coverage of 983. This feature overlaps in genomic position with the gene annotated as RPS6KA2, which is annotated on the positive strand. The "\_1" means that this is an **aTAR** feature overlapping an existing gene annotation without considering directionality.
+
+## Data Availability
+The following publicly available datasets are used in the manuscript. 
+-[Human PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k?)
+-[Mouse Atlas](https://tabula-muris.ds.czbiohub.org/), [GSE109774](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE109774)
+-Naked mole rat spleen data [GSE132642](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132642)
+-Sea urchin embryo data [GSE134350](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE134350)
+-Chicken embryonic heart [GSE149457](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149457)
