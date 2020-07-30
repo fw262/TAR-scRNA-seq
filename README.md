@@ -75,7 +75,7 @@ Please ensure the Snakefile and config.yaml files as well as the scripts folder 
 
 ## Test datset
 
-A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. You should be able to run through this small dataset without errors, generating gene and TAR expression matrices.
+A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. You should be able to run through this small dataset without errors, generating gene and TAR expression matrices. The entire pipeline should take less than 15 minutes to complete on the test dataset with 1 core.
 
 ## Output
 
