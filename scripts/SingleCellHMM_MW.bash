@@ -7,15 +7,12 @@ MERGEBP=$3
 THRESH=$4
 PL=$5
 
-${CORE:=5}
-#${MINCOV:=5}
-${MERGEBP:=500}
-${THRESH:=10000000}
-#${PL:=/fs/cbsuvlaminck2/workdir/fw262/ShaoPei/pipeline/scripts}
-#${PL:=scripts}
-#${PL:=/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/scripts}
+CORE="${CORE:-5}"
+#MINCOV="${MINCOV:-5}"
+MERGEBP="${MERGEBP:-500}"
+THRESH="${THRESH:-10000000}"
 CURDIR=`pwd`
-${PL:=${CURDIR}/scripts}
+PL="${PL:-${CURDIR}/scripts}"
 
 reads=`samtools view -q 255 $INPUT_BAM | wc -l`
 echo "Number of aligned reads is $reads"
