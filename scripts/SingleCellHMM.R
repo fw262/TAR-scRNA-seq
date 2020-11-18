@@ -5,7 +5,15 @@ args=(commandArgs(TRUE))
 setwd(args[1])
 input_f = args[2] #PREFIX.bed.gz #05-007B1_gene_exon_tagged.REF_chr22_split.bed.gz
 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 
+if (!require('rtracklayer')){
+BiocManager::install("rtracklayer")
+}
+if (!require('groHMM')){
+BiocManager::install("groHMM")
+}
 
 library(groHMM)
 library(rtracklayer)
