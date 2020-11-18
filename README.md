@@ -24,11 +24,7 @@ conda install -c bioconda dropseq_tools
 
 7. [Samtools](http://www.htslib.org/)
 
-8. [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html)
-
-groHMM can also be installed through [conda](https://anaconda.org/bioconda/bioconductor-grohmm).
-
-9. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
