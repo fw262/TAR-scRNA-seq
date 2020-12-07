@@ -28,6 +28,14 @@ conda install -c bioconda dropseq_tools
 
 This tool is used to convert gtf annotation files to refFlat format.
 
+9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+
+Please make sure this tool is available in your working environment.
+
+10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+
+Please also download the nt database.
+
 ## Procedure
 
 ### 1. Clone this repository.
