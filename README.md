@@ -108,7 +108,7 @@ The following publicly available datasets are used in the manuscript.
 
 ## Frequently Asked Questions (FAQs)
 
-#1. Error in rule calcHMMrefFlat stating "Error in read.table(file = file, header = header, sep = sep, quote = quote,  :
+###1. Error in rule calcHMMrefFlat stating "Error in read.table(file = file, header = header, sep = sep, quote = quote,  :
   no lines available in input". 
   
 Please refer to the "SingleCellHMM_Run_combined_bam_HMM_features.log" created in the same directory as your Snakefile. You will likely see the following error:
