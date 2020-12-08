@@ -372,11 +372,11 @@ rule getCellsList:
 	output: '{path}/{sample}_cellList.txt'
 	shell:
 		"""
-		sed '/^#/ d' < {input} > temp.txt
-		tail -n +3 temp.txt > temp2.txt
-		cut -f1 temp2.txt > {output}
-		rm temp.txt
-		rm temp2.txt
+		sed '/^#/ d' < {input} > {input}.temp.txt
+		tail -n +3 {input}.temp.txt > {input}.temp2.txt
+		cut -f1 {input}.temp2.txt > {output}
+		rm {input}.temp.txt
+		rm {input}.temp2.txt
 		"""
 
 rule extract_HMM_expression_withDir:
