@@ -20,7 +20,7 @@ conda install -c bioconda dropseq_tools
 
 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
-6. [R](https://www.r-project.org/)
+6. [R, version 3.6 or greater](https://www.r-project.org/)
 
 7. [Samtools](http://www.htslib.org/)
 
