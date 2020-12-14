@@ -22,17 +22,19 @@ conda install -c bioconda dropseq_tools
 
 6. [R, version 3.6 or greater](https://www.r-project.org/)
 
-7. [Samtools](http://www.htslib.org/)
+7. [Seurat, version 3.2.1](https://satijalab.org/seurat/install.html)
 
-8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+8. [Samtools](http://www.htslib.org/)
+
+9. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
-9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+10. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
 
-10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+11. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 Please also download the nt database.
 
