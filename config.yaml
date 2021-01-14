@@ -1,6 +1,6 @@
 Samples: # same names i.e. {Samples}_R1.fastq.gz and {Samples}_R2.fastq.gz
-#    day4_0.25m:
-#    day7_0.25m:
+    day4_0.25m:
+    day7_0.25m:
 
 GENOMEREF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
 REFGTF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
