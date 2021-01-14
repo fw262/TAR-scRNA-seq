@@ -23,13 +23,13 @@ conda install -c bioconda dropseq_tools
 6. [R, version 3.6 or greater](https://www.r-project.org/)
 
 Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
--[BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
--[rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
--[groHMM](https://www.bioconductor.org/packages/release/bioc/html/groHMM.html)
--[Seurat, version 3.2.1](https://satijalab.org/seurat/install.html)
--[data.table](https://github.com/Rdatatable/data.table)
--[dplyr](https://www.r-project.org/nosvn/pandoc/dplyr.html)
--[stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
+- [BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
+- [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
+- [groHMM](https://www.bioconductor.org/packages/release/bioc/html/groHMM.html)
+- [Seurat, version 3.2.1](https://satijalab.org/seurat/install.html)
+- [data.table](https://github.com/Rdatatable/data.table)
+- [dplyr](https://www.r-project.org/nosvn/pandoc/dplyr.html)
+- [stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
 7. [Samtools](http://www.htslib.org/)
 
