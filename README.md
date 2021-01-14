@@ -33,11 +33,11 @@ Please also ensure that you have downloaded the following R packages. They will 
 
 ### 7. [Samtools](http://www.htslib.org/)
 
-### 8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+### 8. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
-### 9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+### 9. [Bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
 
