@@ -8,19 +8,19 @@ TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflo
 ## Required Software
 This workflow requires the following packages listed below.
 
-1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+### 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
-2. [Drop-seq Computational Tools v2.3.0](https://github.com/broadinstitute/Drop-seq/releases)
+### 2. [Drop-seq Computational Tools v2.3.0](https://github.com/broadinstitute/Drop-seq/releases)
 
 Run the following command in your command line.
 ```
 conda install -c bioconda dropseq_tools
 ```
-3. [Picard Tools](https://broadinstitute.github.io/picard/)
+### 3. [Picard Tools](https://broadinstitute.github.io/picard/)
 
-4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
+### 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
-6. [R, version 3.6 or greater](https://www.r-project.org/)
+### 6. [R, version 3.6 or greater](https://www.r-project.org/)
 
 Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
 - [BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
@@ -31,17 +31,17 @@ Please also ensure that you have downloaded the following R packages. They will 
 - [dplyr](https://www.r-project.org/nosvn/pandoc/dplyr.html)
 - [stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
-7. [Samtools](http://www.htslib.org/)
+### 7. [Samtools](http://www.htslib.org/)
 
-8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+### 8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
-9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+### 9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
 
-10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+### 10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 Please also download the nt database.
 
