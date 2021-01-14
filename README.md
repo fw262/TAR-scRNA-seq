@@ -21,20 +21,26 @@ conda install -c bioconda dropseq_tools
 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
 6. [R, version 3.6 or greater](https://www.r-project.org/)
+Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
+-[BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
+-[rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
+-[groHMM](https://www.bioconductor.org/packages/release/bioc/html/groHMM.html)
+-[Seurat, version 3.2.1](https://satijalab.org/seurat/install.html)
+-[data.table](https://github.com/Rdatatable/data.table)
+-[dplyr](https://www.r-project.org/nosvn/pandoc/dplyr.html)
+-[stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
-7. [Seurat, version 3.2.1](https://satijalab.org/seurat/install.html)
+7. [Samtools](http://www.htslib.org/)
 
-8. [Samtools](http://www.htslib.org/)
-
-9. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+8. [gtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
-10. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+9. [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
 
-11. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 Please also download the nt database.
 
