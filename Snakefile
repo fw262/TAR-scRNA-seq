@@ -1,4 +1,4 @@
-##########################################################################
+#########################################################################
 #    uTAR Snakemake pipeline
 #    Copyright (C) 2020 Michael Wang
 #
@@ -45,7 +45,8 @@ gtfToGenePred=config['GTFTOGENEPRED']
 
 rule all:
 ############## original default call here
-	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+#	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_diffuTARMarkersLabeled.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 
 #####################################################################################
 # create sequence dictionary using picard tools
@@ -54,9 +55,9 @@ rule createGenomeDict:
         output: config['GENOMEREF']+'.dict'
         shell:
                 """
-                java -jar {PICARD} CreateSequenceDictionary \
-                        R={input} \
-                        O={output}
+                java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
+                        -R {input} \
+                        -O {output}
                 """
 ###########################################################################
 
@@ -103,9 +104,9 @@ rule fastq_to_sam_R1:
 	output: '{path}/{sample}_unaligned_r1.bam'
 	threads: CORES
 	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
-		F1={input.r1}\
-		SM=DS O={output}"""
+		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
+		-F1 {input.r1}\
+		-SM DS -O {output}"""
 
 ########################################################################################################
 #fastqc to sam for R2 only
@@ -117,9 +118,9 @@ rule fastq_to_sam_R2:
 	output: '{path}/{sample}_unaligned_r2.bam'
 	threads: CORES
 	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
-		F1={input.r2}\
-		SM=DS O={output}"""
+		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
+		-F1 {input.r2}\
+		-SM DS -O {output}"""
 
 ########################################################################################################
 #fastqc to sam
@@ -132,10 +133,10 @@ rule fastq_to_sam:
 	output: '{path}/{sample}_unaligned.bam'
 	threads: CORES
 	shell:
-		"""java -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
-		F1={input.r1}\
-		F2={input.r2}\
-		SM=DS O={output}"""
+		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
+		-F1 {input.r1}\
+		-F2 {input.r2}\
+		-SM DS -O {output}"""
 
 ########################################################################################################
 #Pre-alignment
@@ -208,9 +209,9 @@ rule sam_to_fastq:
 	input: '{path}/{sample}_tagged_unmapped.bam'
 	output: '{path}/{sample}_tagged_unmapped.fastq'
 	shell:
-		"""java -Xmx500m -jar -Djava.io.tmpdir={TMPDIR}	{PICARD} SamToFastq\
-		INPUT={input}\
-		FASTQ={output}"""
+		"""java -Dpicard.useLegacyParser=false -Xmx500m -jar -Djava.io.tmpdir={TMPDIR}	{PICARD} SamToFastq\
+		-INPUT {input}\
+		-FASTQ {output}"""
 
 ########################################################################################################
 # Align the data with star
@@ -243,11 +244,11 @@ rule sort:
 	output: temp('{path}/{sample}_Aligned_sorted_2.bam')
 	threads: CORES
 	shell:
-		"""java	-Djava.io.tmpdir={TMPDIR} -Dsamjdk.buffer_size=131072 -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4000m -jar {PICARD} SortSam\
-		INPUT={input}\
-		OUTPUT={output}\
-		SORT_ORDER=queryname\
-		TMP_DIR={TMPDIR}"""
+		"""java	-Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Dsamjdk.buffer_size=131072 -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4000m -jar {PICARD} SortSam\
+		-INPUT {input}\
+		-OUTPUT {output}\
+		-SORT_ORDER queryname\
+		-TMP_DIR {TMPDIR}"""
 
 rule indexBamFiles:
 	input:
@@ -296,13 +297,13 @@ rule MergeBamAlignment:
 	output: '{path}/{sample}_merged.bam'
         threads: CORES
         shell:
-                """java -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
-                REFERENCE_SEQUENCE={GENOMEREF}\
-                UNMAPPED_BAM={input.unmapped}\
-              	ALIGNED_BAM={input.mapped}\
-                INCLUDE_SECONDARY_ALIGNMENTS=false\
-                PAIRED_RUN=false\
-                OUTPUT={output}
+                """java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
+                -REFERENCE_SEQUENCE {GENOMEREF}\
+                -UNMAPPED_BAM {input.unmapped}\
+              	-ALIGNED_BAM {input.mapped}\
+                -INCLUDE_SECONDARY_ALIGNMENTS false\
+                -PAIRED_RUN false\
+                -OUTPUT {output}
 		"""
 
 rule stage3:
@@ -408,7 +409,67 @@ rule extract_HMM_expression_noDir:
 		O={output}\
 		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_TAR_noDir_dge.summary.txt \
 		CELL_BC_FILE={input.barcodes}"""
-		
+
+# generate differentially expressed genes and uTARs
+rule getDiffMarkers:
+	input:
+		geneFile='{path}/{sample}_gene_expression_matrix.txt.gz',
+		hmmFile='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz'
+	output: '{path}/{sample}_diffMarkers.txt'
+	shell:
+		"""
+		Rscript scripts/analyzeExpressionMat.R {input.geneFile} {input.hmmFile}
+		"""
+
+# from diff uTARs, extract fasta region to blast
+rule getDiffSeqsToBlast:
+	input: 
+		diffMarkers='{path}/{sample}_diffMarkers.txt',
+		bamFile='{path}/{sample}_Aligned_sorted_2.bam',
+		bamIndex='{path}/{sample}_Aligned_sorted_2.bam.bai'
+	output:	fastaRegions=temp('{path}/{sample}_seqsToBlast.txt'),
+		uTARDiffMarkers=temp('{path}/{sample}_diffuTARMarkers.txt')
+	shell:
+		"""
+		Rscript scripts/getFastasForBlast.R {input.diffMarkers} {input.bamFile}
+		"""
+
+# extract diff uTAR fastas
+rule getDiffSeqsToBlastFa:
+	input:
+		fastaHeaders="{path}/{sample}_seqsToBlast.txt",
+		fastaFile=config['GENOMEREF'],
+		fastaIndex=config['GENOMEREF']+'.dict'
+	output:
+		"{path}/{sample}_seqsToBlast.fa"
+	shell:
+		"""
+		samtools faidx -r {input.fastaHeaders} {input.fastaFile} > {output}
+		"""
+
+# run blast on fastas
+rule ruleBlast:
+	input:
+		fastaFile="{path}/{sample}_seqsToBlast.fa",
+		blastDB=config['BLASTDB']
+	output:
+		"{path}/{sample}_blastResults.txt"
+	shell:
+		"""
+		blastn -db {input.blastDB}/nt -query {input.fastaFile} -out {output} -outfmt '6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore' -max_target_seqs 5 -num_threads 50
+		"""
+
+# label uTARs based on best blast results
+rule labelDiffuTARs:
+        input:
+              	diffMarkers='{path}/{sample}_diffuTARMarkers.txt',
+                blastResult='{path}/{sample}_blastResults.txt'
+        output: uTARSummary='{path}/{sample}_diffuTARMarkersLabeled.txt',
+        shell:
+                """
+                Rscript scripts/examineBlastResults.R {input.diffMarkers} {input.blastResult}
+                """
+
 rule finishOut:
 	input: 	gene='{path}/{sample}_gene_expression_matrix.txt.gz',
 		hmm1='{path}/{sample}_TAR_expression_matrix_withDir.txt.gz',
