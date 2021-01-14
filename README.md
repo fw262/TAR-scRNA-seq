@@ -71,12 +71,13 @@ Please change the variable names in the config.yaml as required for your analysi
 - **SAMPWDIR**: Directory where summary information is stored.
 - **DATADIR**: Path to where the sequencing samples ({sample}\_R1.fastq.gz) are stored.
 - **TMPDIR**: Directory to store temporary files.
-- **PIPELINE_MAJOR**: Directory where the expression matrices are stored.
+- **PIPELINE_MAJOR**: Directory where the outputs (expression matrices, differentially expressed uTARs) are stored.
 - **GLOBAL**: Define global variables for pipeline including number of mismatches allowed in STAR, cell barcode base pair range in read 1, and UMI base pair range in read 1.
 - **PICARD**: Path to the picard tools .jar file.
 - **DROPSEQ**: Path to the Dropseq tools folder.
 - **GTFTOGENEPRED**: Path to gtfToGenePred tool. **NOTE** If your gene annotation file is already in the refFlat format, please rename the annotation file to "refFlat.refFlat" and store in the same directory as the Snakefile and config.yaml files.
 - **STAREXEC**: Path to the STAR aligner tool.
+- **BLASTDB**: Directory in which the nt BLAST database is stored.
 - **CORES**: Number of cores used in each step of the pipeline. To run multiple samples in parallel, please specify total number of cores in the snakemake command (i.e. "snakemake -j {total cores}").
 - **expectedCells**: Expected number of cells in each scRNA-seq experiment.
 - **MERGEBP**: Number of bases to merge in groHMM. Smaller numbers creates more TARs but takes longer to run. We recommend keeping the default value of 500.
@@ -88,7 +89,7 @@ Please ensure the Snakefile and config.yaml files as well as the scripts folder 
 
 ## Test datset
 
-A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. You should be able to run through this small dataset without errors, generating gene and TAR expression matrices. The entire pipeline should take less than 15 minutes to complete on the test dataset with 1 core.
+A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. You should be able to run through this small dataset without errors, generating gene and TAR expression matrices as well as a list of labeled differentially expressed uTARs. The entire pipeline should take less than 15 minutes to complete on the test dataset with 1 core.
 
 The full chicken embryonic heart development dataset is available at [GSE149457](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149457).
 
@@ -99,7 +100,7 @@ The full chicken embryonic heart development dataset is available at [GSE149457]
 - Digital expression matrix for TAR features, without consideration of TAR directionality relative to annotated gene features, is stored in "**results_out/{sample}/{sample}\_TAR_expression_matrix_noDir.txt.gz**".
 - Digital expression matrix for TAR features, with consideration of TAR directionality relative to annotated gene features, is stored in "**results_out/{sample}/{sample}\_TAR_expression_matrix_withDir.txt.gz**".
 - A list of differentially expressed genes and uTARs in "**results_out/{sample}/{sample}\_diffMarkers.txt**".
-- A list of differentially expressed uTARs and their labels based on BLASTn in "**results_out/{sample}/{sample}\_diffuTARMarkersLabeled.txt**".
+- A list of differentially expressed uTARs and their labels based on BLASTn results in "**results_out/{sample}/{sample}\_diffuTARMarkersLabeled.txt**".
 - Results of the BLASTn analysis for differentially expressed uTARs in "**results_out/{sample}/{sample}\_blastResults.txt**".
 
 ### Format of TAR feature label
