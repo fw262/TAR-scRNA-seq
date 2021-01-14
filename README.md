@@ -21,6 +21,7 @@ conda install -c bioconda dropseq_tools
 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
 6. [R, version 3.6 or greater](https://www.r-project.org/)
+
 Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
 -[BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
 -[rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
