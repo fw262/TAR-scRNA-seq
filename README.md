@@ -3,10 +3,10 @@ Author: Michael Wang (fw262@cornell.edu)
 Link to preprint: 
 
 ## Outline
-TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflow that enables the discovery of transcripts beyond those listed in gene annotations in scRNA-seq analysis. The workflow aligns single-cell tagged sequencing reads to a genome without gene annotations using [STAR](https://github.com/alexdobin/STAR). The alignment files are then used to define *de-novo* transcriptionally active regions (TARs) using a modified version of [groHMM](https://github.com/dankoc/groHMM) based on regions along the genome with signficant read coverage. TARs are compared against an existing set of gene annotations to label them as annotated (aTARs) when they overlap with existing gene annotations or unanotated (uTARs) when they do not. These labeled TARs are then used to generate a TAR feature expression matrix in parallel with a gene expression matrix.
+TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflow that enables the discovery of transcripts beyond those listed in gene annotations in scRNA-seq analysis. The workflow aligns single-cell tagged sequencing reads to a genome without gene annotations using [STAR](https://github.com/alexdobin/STAR). The alignment files are then used to define *de-novo* transcriptionally active regions (TARs) using a modified version of [groHMM](https://github.com/dankoc/groHMM) based on regions along the genome with signficant read coverage. TARs are compared against an existing set of gene annotations to label them as annotated (aTARs) when they overlap with existing gene annotations or unanotated (uTARs) when they do not. These labeled TARs are then used to generate a TAR feature expression matrix in parallel with a gene expression matrix. Seurat tools are used to find differentially expressed uTARs which are labeled based on BLASTn sequence homology.
 
 ## Required Software
-This workflow requires the following packages listed below.
+This workflow requires the following packages listed below. Please ensure that tool can be called from the command line (i.e. the paths to each tool is in your path variable).
 
 ### 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
@@ -20,7 +20,7 @@ conda install -c bioconda dropseq_tools
 
 ### 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
-### 6. [R, version 3.6 or greater](https://www.r-project.org/)
+### 5. [R, version 3.6 or greater](https://www.r-project.org/)
 
 Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
 - [BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
@@ -31,17 +31,17 @@ Please also ensure that you have downloaded the following R packages. They will 
 - [dplyr](https://www.r-project.org/nosvn/pandoc/dplyr.html)
 - [stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
-### 7. [Samtools](http://www.htslib.org/)
+### 6. [Samtools](http://www.htslib.org/)
 
-### 8. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
+### 7. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 
 This tool is used to convert gtf annotation files to refFlat format.
 
-### 9. [Bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+### 8. [Bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
 
-### 10. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+### 9. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 Please also download the nt database.
 
