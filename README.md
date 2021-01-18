@@ -99,8 +99,8 @@ snakemake -R --until getMats -j [# cores]
 
 To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after issuing the command above), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
 ```
-mv testData_small/day7_0.25m_*expression_matrix* results_chicken/day7_0.25m/
-mv testData_small/day4_0.25m_*expression_matrix* results_chicken/day4_0.25m/
+cp testData_small/day7_0.25m_*expression_matrix* results_chicken/day7_0.25m/
+cp testData_small/day4_0.25m_*expression_matrix* results_chicken/day4_0.25m/
 ```
 
 To run the full pipeline including generating a list of labeled differentially expressed uTARs, run the default snakemake command:
