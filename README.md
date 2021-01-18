@@ -92,12 +92,12 @@ Please ensure the Snakefile and config.yaml files as well as the scripts folder 
 A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. The full chicken embryonic heart development dataset is available at [GSE149457](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149457). Please note that full expression matrices (gene and unstranded TAR) are also included for the day 4 and day 7 datasets in the **testData_small** folder.
 
 
-To generate expression matrices (gene, stranded and unstranded TAR), please run the snakemake rule "getMats" with the following command (filling in # cores):
+To generate expression matrices (gene, stranded and unstranded TAR), please run the snakemake rule "getMats" with the following command:
 ```
 snakemake -R --until getMats -j [# cores]
 ```
 
-To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after generating expression matrices), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
+To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after issuing the command above), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
 ```
 mv testData_small/day7_0.25m_*expression_matrix* results_chicken/day7_0.25m/
 mv testData_small/day4_0.25m_*expression_matrix* results_chicken/day4_0.25m/
