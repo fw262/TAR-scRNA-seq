@@ -16,7 +16,7 @@ Run the following command in your command line.
 ```
 conda install -c bioconda dropseq_tools
 ```
-### 3. [Picard Tools](https://broadinstitute.github.io/picard/)
+### 3. [Picard Tools, version 2.18.29-0 or greater](https://broadinstitute.github.io/picard/)
 
 ### 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
 
