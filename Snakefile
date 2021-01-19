@@ -45,8 +45,10 @@ gtfToGenePred=config['GTFTOGENEPRED']
 
 rule all:
 ############## original default call here
-#	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_finish.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_diffuTARMarkersLabeled.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+
+rule getMats:
+	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_getMats.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
 
 #####################################################################################
 # create sequence dictionary using picard tools
@@ -92,35 +94,6 @@ rule convertToRefFlat1:
                 paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output}
                 rm refFlat.tmp
                 """
-				
-
-########################################################################################################
-#fastqc to sam for R1 only
-"""Create an empty bam file linking cell/UMI barcodes to reads"""
-########################################################################################################
-rule fastq_to_sam_R1:
-	input:
-		r1='{DATADIR}/{sample}_R1.fastq.gz',
-	output: '{path}/{sample}_unaligned_r1.bam'
-	threads: CORES
-	shell:
-		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
-		-F1 {input.r1}\
-		-SM DS -O {output}"""
-
-########################################################################################################
-#fastqc to sam for R2 only
-"""Create an empty bam file linking cell/UMI barcodes to reads"""
-########################################################################################################
-rule fastq_to_sam_R2:
-	input:
-		r2='{DATADIR}/{sample}_R2.fastq.gz',
-	output: '{path}/{sample}_unaligned_r2.bam'
-	threads: CORES
-	shell:
-		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
-		-F1 {input.r2}\
-		-SM DS -O {output}"""
 
 ########################################################################################################
 #fastqc to sam
@@ -130,7 +103,7 @@ rule fastq_to_sam:
 	input:
 		r1=config['DATADIR']+'/{sample}_R1.fastq.gz',
 		r2=config['DATADIR']+'/{sample}_R2.fastq.gz'
-	output: '{path}/{sample}_unaligned.bam'
+	output: temp('{path}/{sample}_unaligned.bam')
 	threads: CORES
 	shell:
 		"""java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -jar {PICARD} FastqToSam\
@@ -145,7 +118,7 @@ rule fastq_to_sam:
 
 rule stage1:
 	input: '{path}/{sample}_unaligned.bam'
-	output: '{path}/{sample}_tagged_unmapped.bam'
+	output: temp('{path}/{sample}_tagged_unmapped.bam')
 	params:
 		BC_summary = '{sample}_CELL_barcode.txt',
 		UMI_summary = '{sample}_UMI_barcode.txt',
@@ -169,7 +142,7 @@ rule stage1:
 		TAG_NAME=XC\
 		NUM_BASES_BELOW_QUALITY=1\
 		INPUT={input}\
-		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0 |\
+		OUTPUT=/dev/stdout COMPRESSION_LEVEL=0|\
 		\
 		{DROPSEQ}/TagBamWithReadSequenceExtended\
 		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.UMI_summary}\
@@ -207,7 +180,7 @@ rule stage1:
 ########################################################################################################
 rule sam_to_fastq:
 	input: '{path}/{sample}_tagged_unmapped.bam'
-	output: '{path}/{sample}_tagged_unmapped.fastq'
+	output: temp('{path}/{sample}_tagged_unmapped.fastq')
 	shell:
 		"""java -Dpicard.useLegacyParser=false -Xmx500m -jar -Djava.io.tmpdir={TMPDIR}	{PICARD} SamToFastq\
 		-INPUT {input}\
@@ -230,7 +203,7 @@ rule STAR_align:
 	shell:"""{STAREXEC}\
 			--genomeDir {input.STAR_ind}\
 			--runThreadN {CORES}\
-			--outFilterMismatchNmax={params.mismatch}\
+			--outFilterMismatchNmax {params.mismatch}\
 			--readFilesIn {input.fastq}\
 			--genomeLoad NoSharedMemory\
 			--outFileNamePrefix {wildcards.path}/{params.prefix} || true"""
@@ -241,7 +214,7 @@ rule STAR_align:
 rule sort:
 	input:
 		samples = '{path}/{sample}_STAR_Aligned.out.sam'
-	output: temp('{path}/{sample}_Aligned_sorted_2.bam')
+	output: '{path}/{sample}_Aligned_sorted_2.bam'
 	threads: CORES
 	shell:
 		"""java	-Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Dsamjdk.buffer_size=131072 -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4000m -jar {PICARD} SortSam\
@@ -250,10 +223,22 @@ rule sort:
 		-SORT_ORDER queryname\
 		-TMP_DIR {TMPDIR}"""
 
+rule sortCoord:
+	input:
+		samples = '{path}/{sample}_STAR_Aligned.out.sam'
+	output: '{path}/{sample}_Aligned_coordSort.bam'
+	threads: CORES
+	shell:
+		"""java	-Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Dsamjdk.buffer_size=131072 -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4000m -jar {PICARD} SortSam\
+		-INPUT {input}\
+		-OUTPUT {output}\
+		-SORT_ORDER coordinate\
+		-TMP_DIR {TMPDIR}"""
+
 rule indexBamFiles:
 	input:
-		samples='{path}/{sample}_Aligned_sorted_2.bam'
-	output:'{path}/{sample}_Aligned_sorted_2.bam.bai'
+		samples='{path}/{sample}_Aligned_coordSort.bam'
+	output: '{path}/{sample}_Aligned_coordSort.bam.bai'
 	threads: CORES
 	shell:
 		"""samtools index {input}"""
@@ -294,7 +279,7 @@ rule MergeBamAlignment:
 	input:  unmapped = '{path}/{sample}_tagged_unmapped.bam', 
 		mapped = '{path}/{sample}_Aligned_sorted_2.bam',
 		dictFile = config['GENOMEREF']+'.dict'
-	output: '{path}/{sample}_merged.bam'
+	output: temp('{path}/{sample}_merged.bam')
         threads: CORES
         shell:
                 """java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
@@ -308,7 +293,7 @@ rule MergeBamAlignment:
 
 rule stage3:
 	input:  merged = '{path}/{sample}_merged.bam', reference = 'refFlat.refFlat'
-        output: '{path}/{sample}_gene_exon_tagged.bam'
+        output: temp('{path}/{sample}_gene_exon_tagged.bam')
         threads: CORES
         shell:
                 """
@@ -323,7 +308,21 @@ rule stage3:
 rule stage3_withDir:
 	input:	merged = '{path}/{sample}_merged.bam',
 		reference ='TAR_reads.bed.gz.withDir.refFlat.refFlat'
-	output: '{path}/{sample}_TAR_tagged_withDir.bam'
+	output: temp('{path}/{sample}_TAR_tagged_withDir.bam')
+	threads: CORES
+        shell:
+                """
+                {DROPSEQ}/TagReadWithGeneFunction\
+                O={output}\
+                I={input.merged}\
+                ANNOTATIONS_FILE={input.reference}\
+                #TAG=GE\
+                CREATE_INDEX=true
+                """
+rule stage3_noDir:
+        input:  merged = '{path}/{sample}_merged.bam',           
+	        reference = 'TAR_reads.bed.gz.noDir.refFlat.refFlat'
+	output: temp('{path}/{sample}_TAR_tagged_noDir.bam')
 	threads: CORES
         shell:
                 """
@@ -335,20 +334,6 @@ rule stage3_withDir:
                 CREATE_INDEX=true
                 """
 
-rule stage3_noDir:
-        input:  merged = '{path}/{sample}_merged.bam',           
-	        reference = 'TAR_reads.bed.gz.noDir.refFlat.refFlat'
-	output: '{path}/{sample}_TAR_tagged_noDir.bam'
-	threads: CORES
-        shell:
-                """
-                {DROPSEQ}/TagReadWithGeneFunction\
-                O={output}\
-                I={input.merged}\
-                ANNOTATIONS_FILE={input.reference}\
-                #TAG=GE\
-                CREATE_INDEX=true
-                """
 
 ########################################################################################################
 # Extract expression for single species
@@ -410,6 +395,7 @@ rule extract_HMM_expression_noDir:
 		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_TAR_noDir_dge.summary.txt \
 		CELL_BC_FILE={input.barcodes}"""
 
+
 # generate differentially expressed genes and uTARs
 rule getDiffMarkers:
 	input:
@@ -425,10 +411,10 @@ rule getDiffMarkers:
 rule getDiffSeqsToBlast:
 	input: 
 		diffMarkers='{path}/{sample}_diffMarkers.txt',
-		bamFile='{path}/{sample}_Aligned_sorted_2.bam',
-		bamIndex='{path}/{sample}_Aligned_sorted_2.bam.bai'
-	output:	fastaRegions=temp('{path}/{sample}_seqsToBlast.txt'),
-		uTARDiffMarkers=temp('{path}/{sample}_diffuTARMarkers.txt')
+		bamFile='{path}/{sample}_Aligned_coordSort.bam',
+		bamIndex='{path}/{sample}_Aligned_coordSort.bam.bai'
+	output:	fastaRegions='{path}/{sample}_seqsToBlast.txt',
+		uTARDiffMarkers='{path}/{sample}_diffuTARMarkers.txt'
 	shell:
 		"""
 		Rscript scripts/getFastasForBlast.R {input.diffMarkers} {input.bamFile}
@@ -470,11 +456,13 @@ rule labelDiffuTARs:
                 Rscript scripts/examineBlastResults.R {input.diffMarkers} {input.blastResult}
                 """
 
-rule finishOut:
+rule getMatsSteps:
 	input: 	gene='{path}/{sample}_gene_expression_matrix.txt.gz',
 		hmm1='{path}/{sample}_TAR_expression_matrix_withDir.txt.gz',
-		hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz'
+		hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz',
+		bamFile='{path}/{sample}_Aligned_coordSort.bam',
+		baiFile='{path}/{sample}_Aligned_coordSort.bam.bai'
 
-	output: '{path}/{sample}_finish.txt'
+	output: '{path}/{sample}_getMats.txt'
 	shell:
 		"""echo "Expression matrices ready" > {output}"""

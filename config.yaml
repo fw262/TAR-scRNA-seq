@@ -22,8 +22,8 @@ GLOBAL:
         first: 17
         last: 28 # 28 for v3, up to 26 for v2
 
-PICARD: /programs/picard-tools-2.1.1/picard.jar
-DROPSEQ: /home/fw262/miniconda3/share/dropseq_tools-2.3.0-0/
+PICARD: /home/fw262/miniconda3/share/picard-2.18.29-0/picard.jar
+DROPSEQ: /home/fw262/miniconda3/share/dropseq_tools-2.4.0-0/
 GTFTOGENEPRED: /home/fw262/miniconda3/bin/gtfToGenePred # used to convert gtf to reFflat format, not needed if annotation is in reFflat
 STAREXEC: /programs/STAR-2.5/bin/Linux_x86_64/STAR
 BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database is stored
