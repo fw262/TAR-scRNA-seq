@@ -30,7 +30,7 @@ BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database
 # full path of scripts folder
 #FULLSCRIPTPATH: #/local/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/testGitHub/scripts
 
-CORES: 2 # how many cores to give for each process, snakemake automatically parallelize process using "snakemake -j {numTotalCores}" 
+CORES: 12 # how many cores to give for each process, snakemake automatically parallelize process using "snakemake -j {numTotalCores}" 
 expectedCells: 5000
 MERGEBP: 500
 THRESH: 10000000
