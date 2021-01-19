@@ -74,7 +74,7 @@ rule generateStar:
                 mkdir STAR_ind_noAnno
                 \
                 {STAREXEC}\
-                        --runThreadN {threads}\
+                        --runThreadN {CORES}\
                         --runMode genomeGenerate\
                         --genomeDir STAR_ind_noAnno\
                         --genomeFastaFiles {input.fastaFile}
@@ -440,9 +440,10 @@ rule ruleBlast:
 		blastDB=config['BLASTDB']
 	output:
 		"{path}/{sample}_blastResults.txt"
+	threads: CORES
 	shell:
 		"""
-		blastn -db {input.blastDB}/nt -query {input.fastaFile} -out {output} -outfmt '6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore' -max_target_seqs 5 -num_threads 50
+		blastn -db {input.blastDB}/nt -query {input.fastaFile} -out {output} -outfmt '6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore' -max_target_seqs 5 -num_threads {CORES}
 		"""
 
 # label uTARs based on best blast results
