@@ -97,7 +97,7 @@ To generate expression matrices (gene, stranded and unstranded TAR), please run 
 snakemake -R --until getMats -j [# cores]
 ```
 
-The generation of genome indices using STAR will take considerable time. Assuming the genome indices are available, the test dataset should take less than 15 minutes to generate expression matrices with 1 core and 16GB of RAM. 
+The generation of genome indices using STAR will take considerable time. Assuming the genome indices are available, the test dataset should take less than 15 minutes to generate expression matrices with 12 cores and 16GB of RAM. 
 
 To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after issuing the command above), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
 ```
@@ -109,6 +109,9 @@ To run the full pipeline including generating a list of labeled differentially e
 ```
 snakemake -j [# cores]
 ```
+
+Assuming the expression matrices are available, the test dataset should take less than 30 minutes to generate a list of labeled uTARs with 12 cores and 16GB of RAM. 
+
 
 ## Generating TAR annotations for full length Smart-seq2 (SS2) data
 
