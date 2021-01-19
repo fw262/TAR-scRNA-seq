@@ -43,7 +43,7 @@ Please make sure this tool is available in your working environment.
 
 ### 9. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
-Please also download the nt database.
+**Please also download the nt database.**
 
 ## Procedure
 
