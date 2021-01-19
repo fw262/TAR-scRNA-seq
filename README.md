@@ -108,6 +108,13 @@ To run the full pipeline including generating a list of labeled differentially e
 snakemake -j [# cores]
 ```
 
+## Generating TAR annotations for full length Smart-seq2 (SS2) data
+
+To generate TAR annotations (gtf format) from SS2 data, run scripts/SingleCellHMM_MW_SS2.bash file.
+```
+bash scripts/SingleCellHMM_MW_SS2.bash [bam file] [gene annotations in refFlat format]
+```
+
 ## Output
 
 - RefFlat format of TAR features with and without consideration of directionality stored in "**TAR_reads.bed.gz.withDir.refFlat.refFlat**" and "**TAR_reads.bed.gz.noDir.refFlat.refFlat**".
