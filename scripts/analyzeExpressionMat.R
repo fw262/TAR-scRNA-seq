@@ -30,7 +30,11 @@ print("Input arguments are good")
 print("Loading required packages (Seurat, data.table, dplyr, stringr).")
 
 #library(Seurat, lib.loc = "/programs/R-3.5.0/library")
+if (!require('Seurat')){
+  install.packages('Seurat')
+}
 library(Seurat) # please make sure Seurat is installed
+
 if (!require('data.table')){
   install.packages("data.table")
 }
