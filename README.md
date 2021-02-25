@@ -1,6 +1,8 @@
 # TAR-scRNA-seq
 Author: Michael Wang (fw262@cornell.edu)
-[Biorxiv Preprint link here](https://www.biorxiv.org/content/10.1101/2020.07.31.229575v1)
+
+Biorxiv preprint link [link here](https://www.biorxiv.org/content/10.1101/2020.07.31.229575v1).
+
 The peer reviewed manuscript is currently in press at Nature Communications.
 
 ## Outline
