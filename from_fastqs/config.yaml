@@ -1,0 +1,36 @@
+Samples: # same names i.e. {Samples}_R1.fastq.gz and {Samples}_R2.fastq.gz
+    day4_0.25m:
+    day7_0.25m:
+
+GENOMEREF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
+REFGTF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
+
+SAMPWDIR:   sampwdir # directory where summary information is stored
+DATADIR: testData_small # directory where fastq files are stored
+   
+TMPDIR: temp
+
+#PIPELINE_MAJOR: results_out # folder where scRNA-seq expression matrices are going to be stored
+PIPELINE_MAJOR: results_chicken
+
+GLOBAL:
+    allowed_mismatch: 10 # outFilterMismatchNmax parameter for STAR alignment
+    BC_range: # barcode range
+        first: 1
+        last: 16
+    UMI_range: # unique molecular identifier range
+        first: 17
+        last: 28 # 28 for v3, up to 26 for v2
+
+PICARD: /home/fw262/miniconda3/share/picard-2.18.29-0/picard.jar
+DROPSEQ: /home/fw262/miniconda3/share/dropseq_tools-2.4.0-0/
+GTFTOGENEPRED: /home/fw262/miniconda3/bin/gtfToGenePred # used to convert gtf to reFflat format, not needed if annotation is in reFflat
+STAREXEC: /programs/STAR-2.5/bin/Linux_x86_64/STAR
+BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database is stored
+# full path of scripts folder
+#FULLSCRIPTPATH: #/local/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/testGitHub/scripts
+
+CORES: 12 # how many cores to give for each process, snakemake automatically parallelize process using "snakemake -j {numTotalCores}" 
+expectedCells: 5000
+MERGEBP: 500
+THRESH: 10000000
