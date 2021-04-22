@@ -12,6 +12,7 @@ checkIfExistGene_noDir<-function(input,gene_ref){
   rinqstartMatch<-(startPos<(gene_ref$start))
   rinqendMatch<-(endPos>(gene_ref$end))
   rinqoutGeneAll<-(chrMatch_gene*rinqstartMatch*rinqendMatch) # ref completely inside query
+  
   # also check partial overlap from beginning
   partialStart<-(chrMatch_gene*rinqstartMatch*qinrendMatch)
   partialEnd<-(chrMatch_gene*qinrstartMatch*rinqendMatch)
@@ -55,12 +56,14 @@ checkIfExistGene2<-function(input,gene_ref){
     g3<-as.character(gene_ref$gene[as.logical(partialStart)])
     g4<-as.character(gene_ref$gene[as.logical(partialEnd)])
     gAll<-unique(c(g1,g2,g3,g4))
+    
     # d's are for directions
     d1<-as.character(gene_ref$direction[as.logical(qinroutGeneAll_gene)])
     d2<-as.character(gene_ref$direction[as.logical(rinqoutGeneAll)])
     d3<-as.character(gene_ref$direction[as.logical(partialStart)])
     d4<-as.character(gene_ref$direction[as.logical(partialEnd)])
     dAll<-unique(c(d1,d2,d3,d4))
+    
     return(paste(c(gAll,dAll,"1"),collapse="_"))
   }else{
     #return(paste(c(direction,"0"),collapse="_"))

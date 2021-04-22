@@ -4,19 +4,24 @@
 args=(commandArgs(TRUE))
 setwd(args[1])
 input_f = args[2] #PREFIX.bed.gz #05-007B1_gene_exon_tagged.REF_chr22_split.bed.gz
-
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)){
+  #TODO: check global options for default repo, and set if it isn't found
+  # options()
+  
+  install.packages("BiocManager", repos = "http://cran.us.r-project.org") # DWM- explicitly set repo here to avoid install error
+}
 
 if (!require('rtracklayer')){
-BiocManager::install("rtracklayer")
+  BiocManager::install("rtracklayer")
 }
 if (!require('groHMM')){
-BiocManager::install("groHMM")
+  BiocManager::install("groHMM")
 }
 
 library(groHMM)
 library(rtracklayer)
+
+print("installed/loaded packages")
 
 GRangeTobed <- function(gr, f_name){
   df <- data.frame(seqnames=seqnames(gr),
@@ -137,3 +142,5 @@ S_split =  import(input_f)
 hmmResult_AllEM_split <- detectTranscripts_AllEM(S_split)
 GRangeTobed(hmmResult_AllEM_split$transcripts, paste(strsplit(input_f, '.bed', T)[[1]][1], "_HMM.bed", sep = ""))
 
+cat("Checking for output .bed file from R script... ")
+cat(file.exists(paste(strsplit(input_f, '.bed', T)[[1]][1], "_HMM.bed", sep = "")), "\n")

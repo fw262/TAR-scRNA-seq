@@ -74,9 +74,9 @@ print("Finished labeling based on best BLAST results.")
 
 if(dirname(inputDiffMarkersFile)!="."){
   sampleName<-tail(unlist(strsplit(dirname(inputDiffMarkersFile),"/")),n=1)
-  output<-paste0(dirname(inputDiffMarkersFile),"/",sampleName,"_diffuTARMarkersLabeled.txt")
+  output<-paste0(dirname(inputDiffMarkersFile),"/",sampleName,"_diffuTARFeaturesLabeled.txt")
 } else {
-  output<-paste0("diffuTARMarkersLabeled.txt")
+  output<-paste0("diffuTARFeaturesLabeled.txt")
 }
 
 write.table(diffMarkers,file=output,quote = F, row.names = F,col.names = T,sep="\t")

@@ -13,7 +13,12 @@ TAR.gtf$X5<-TAR.refFlat$V6
 TAR.gtf$X6<-"."
 TAR.gtf$X7<-TAR.refFlat$V4
 TAR.gtf$X8<-"0"
-TAR.gtf$X9<-paste0('gene_id "',TAR.refFlat$V1,'"; transcript_id "',TAR.refFlat$V1,'";')
+TAR.gtf$X9<-paste0(
+  'gene_id "',TAR.refFlat$V1,
+  '"; transcript_id "',TAR.refFlat$V1,'"; ',
+  'gene_name "',TAR.refFlat$V1,
+  '"; transcript_name "',TAR.refFlat$V1,'"'
+  )
 TAR.gtf<-TAR.gtf[,1:9]
 
 write.table(TAR.gtf,file=paste0(inputRefFlat,".gtf"),row.names=F,col.names = F,quote=F,sep="\t")

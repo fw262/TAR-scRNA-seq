@@ -1,35 +1,37 @@
 # bash SingleCellHMM.bash  Path_to_bam_file/PREFIX.bam numberOfThread Path_to_SingleCellHMM.R
 
-INPUT_BAM=$1 #pbmc4k_possorted_genome_bam.bam
-CORE=$2
+INPUT_BAM=$1 #path to .bam file
+CORE=$2 # number of cores for parallelization
 #MINCOV=$3
 MERGEBP=$3
 THRESH=$4
-PL=$5
+OUTDIR=$5 #DWM; cellranger count directory path & output directory
+PL=$6 #path to SingleCellHMM.R
 CORE="${CORE:-5}"
 #MINCOV="${MINCOV:-5}"
 MERGEBP="${MERGEBP:-500}"
 THRESH="${THRESH:-10000000}"
-CURDIR=`pwd`
+CURDIR=`pwd` #snakemake directory
 PL="${PL:-${CURDIR}/scripts}"
 
-reads=`samtools view -q 255 $INPUT_BAM | wc -l`
+reads=`samtools view -q 255 $INPUT_BAM | wc -l` #can this samtools cal be parallelized with -@ ?
 echo "Number of aligned reads is $reads"
 minCovReads=`expr $reads / ${THRESH}`
 MINCOV=$minCovReads
 
-PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev`
-tmp="HMM_features"
-TMPDIR=${PREFIX}_${tmp}
+PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev` #this is the same for all cellranger pipeline, could just directly name it here
+
+TMPDIR=${OUTDIR}/${PREFIX}_HMM_features
 mkdir ${TMPDIR}
 
 exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
 exec 2>&1
 echo "Path to SingleCellHMM.R   $PL"
 echo "INPUT_BAM                 $INPUT_BAM"
-echo "temp folder               $TMPDIR"
+echo "cellranger count folder   $OUTDIR"
+echo "tmp folder                $TMPDIR"
 echo "number Of thread          $CORE"
-echo "minimum coverage		$MINCOV"
+echo "minimum coverage		      $MINCOV"
 echo "thresholded at 1 in $THRESH reads"
 echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
@@ -42,7 +44,7 @@ zcat ${PREFIX}_split.sorted.bed.gz  |awk '{print $0 >> "chr"$1".bed"}'
 find -name "chr*.bed" -size -1024k -delete
 #wc chr*.bed -l > chr_read_count.txt
 echo ""
-echo "Start to run groHMM in each individual chromosome..."
+echo "Start to run groHMM on each individual chromosome..."
 
 
 wait_a_second() {
@@ -57,9 +59,9 @@ wait_a_second() {
 
 for f in chr*.bed
 do
-wait_a_second
-echo ${f}
-R --vanilla --slave --args $(pwd) ${f}  < ${PL}/SingleCellHMM.R  > ${f}.log 2>&1 & pids+=($!)
+  wait_a_second
+  echo ${f}
+  R --vanilla --slave --args $(pwd) ${f}  < ${PL}/SingleCellHMM.R  > ${f}.log 2>&1 & pids+=($!)
 done
 wait "${pids[@]}"
 
@@ -83,7 +85,7 @@ cat chr*_HMM.bed_minus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".
 mkdir toremove
 for f in chr*_HMM.bed
 do
-mv ${f}.sorted.bed ${f}_plus ${f}_minus ${f}_plus_merge${MERGEBP} ${f}_minus_merge${MERGEBP} toremove/.
+	mv ${f}.sorted.bed ${f}_plus ${f}_minus ${f}_plus_merge${MERGEBP} ${f}_minus_merge${MERGEBP} toremove/.
 done
 
 
@@ -129,7 +131,7 @@ for f in *
 do gzip ${f} &
 done
 
-cd ../..
+cd ${CURDIR}
 
 echo ""
 echo "done!"
