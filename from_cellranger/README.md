@@ -57,7 +57,7 @@ git clone https://github.com/fw262/TAR-scRNA-seq
 
 ### 2. Download required software listed above.
 
-Please ensure to include all required software before starting. If using conda, you can create a new environment with the included ```scTAR_cellranger.yml``` file using the following command:
+Please ensure to include all required software before starting. If using conda, you can create a new environment with the included ```scTAR_cellranger.yml``` file. Be sure to change the path in the last line of the .yml file so that it points to your miniconda3 installation. Install everything using the following command:
 ```
 conda create -f scTAR_cellranger.yml
 ```

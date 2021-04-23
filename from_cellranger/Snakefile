@@ -48,10 +48,8 @@ rule all:
 ############## original default call here
 	input: expand('{DATADIR}/{sample}_cellranger_count/TAR/TAR_diffuTARFeaturesLabeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
-# blastResults.txt
-
-# rule getMats:
-# 	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_getMats.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+rule getMats:
+	input: expand('{DATADIR}/{sample}/TAR/getMats.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
 #####################################################################################
 # Set up before running HMM
@@ -189,7 +187,7 @@ rule stage3_withDir:
 # Extract expression for single species
 ########################################################################################################
 
-# Remove any non-ACGT characters from cell barcodes list
+# Remove any non-ACGT characters from cell barcodes list -
 # rule cleanCellsList:
 # 	input:	'{DATADIR}/{sample}_cellranger_count/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
 # 	output: '{DATADIR}/{sample}_cellranger_count/TAR/cellList.txt'
