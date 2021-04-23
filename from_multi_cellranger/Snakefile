@@ -17,63 +17,75 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##########################################################################
 
-
 import pdb
 ########################################################################################################
 # Configfile
 ########################################################################################################
 configfile:'config.yaml'
 ########################################################################################################
+# Directories and locations
+########################################################################################################
+DATADIR = config['DATADIR']
+TMPDIR = config['TMPDIR']
+########################################################################################################
 # Variables and references
 ########################################################################################################
-SAMPLEWDIR = config['SAMPWDIR']
-MISMATCH = config['GLOBAL']['allowed_mismatch']
-DATADIR = config['DATADIR']
-GENOMEREF = config['GENOMEREF']
-TMPDIR = config['TMPDIR']
-gtffile=config['REFGTF']
+CR_REF = config['CR_REF']
 MERGEBP=str(config['MERGEBP'])
 THRESH=str(config['THRESH'])
+CORES = config['CORES']
+
 #FULLSCRIPTPATH=str(config['FULLSCRIPTPATH'])
 ########################################################################################################
 # Executables
 ########################################################################################################
-TMPDIR = config['TMPDIR']
 PICARD = config['PICARD']
 DROPSEQ = config['DROPSEQ']
-STAREXEC = config['STAREXEC']
-CORES = config['CORES']
-gtfToGenePred=config['GTFTOGENEPRED']
+GTFTOGENEPRED = config['GTFTOGENEPRED']
 
+########################################################################################################
 rule all:
 ############## original default call here
-	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_diffuTARMarkersLabeled.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	input: expand('{DATADIR}/{sample}_cellranger_count/TAR/TAR_diffuTARFeaturesLabeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
 rule getMats:
-	input: expand('{PIPELINE_MAJOR}/{sample}/{sample}_getMats.txt', PIPELINE_MAJOR=config['PIPELINE_MAJOR'], sample=config['Samples'])
+	input: expand('{DATADIR}/{sample}/TAR/getMats.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
 #####################################################################################
-# create sequence dictionary using picard tools
-#TODO- need this?
-# rule createGenomeDict:
-#         input: config['GENOMEREF']
-#         output: config['GENOMEREF']+'.dict'
-#         shell:
-#                 """
-#                 java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
-#                         -R {input} \
-#                         -O {output}
-#                 """
+# Set up before running HMM
+#####################################################################################
 
-# Make output directory in cellranger count output
-rule makeOutDir
-	input: config['CR_COUNT_OUT']
-	output: config['CR_COUNT_OUT']+'/outs/TAR'
+# create sequence dictionary using picard tools - only need to run once, saves into your cellranger reference
+rule createGenomeDict:
+        input: CR_REF+'/fasta/genome.fa'
+        output: CR_REF+'/fasta/genome.fa'+'.dict'
+        shell:
+                """
+                java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
+                        -R {input} \
+                        -O {output}
+                """
+
+# convert GTF to REFFlat, save in your cellranger reference
+# 	not run if REFFlat file exists -  will only need to run this once for each reference genome
+rule convertToRefFlat:
+        input:  "{CR_REF}/genes/genes.gtf"
+        output: "{CR_REF}/genes/genes.refFlat"
+        shell:
+              	"""
+                {GTFTOGENEPRED} -genePredExt -geneNameAsName2 {input} refFlat.tmp
+                paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output}
+                rm refFlat.tmp
+                """
+
+# Make output directory for TAR results in cellranger count directory
+rule makeOutDir:
+	input: '{DATADIR}/{sample}_cellranger_count',
+	output: directory('{DATADIR}/{sample}_cellranger_count/TAR')
 	shell:
 		"""
 		mkdir {output}
 		"""
-
 
 ########################################################################################################
 # Post-alignment
@@ -85,221 +97,227 @@ rule makeOutDir
 #	output: "combined_bam.bam"
 #	shell: """samtools view -s {downSamp} -b {input} > {output}
 
-
+# Run HMM
 rule calcHMMbed:
-	input: "combined_bam.bam" # TODO - possorted_genome_bam.bam?
-	output: "TAR_reads.bed.gz"
+	input: '{DATADIR}/{sample}_cellranger_count/outs/possorted_genome_bam.bam' #need absolute path
+	output: temp('{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz')
 	threads: CORES
 	shell:
 		"""
-		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {MERGEBP} {THRESH}
+		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}_cellranger_count/TAR
 		"""
-
+# Generate annotations from HMM in refFlat format
+#		Returns annotations with and without considering strandedness/direction
 rule calcHMMrefFlat:
-	input:	"TAR_reads.bed.gz"
-	output: 'TAR_reads.bed.gz.noDir.refFlat.refFlat',
-		'TAR_reads.bed.gz.withDir.refFlat.refFlat'
+	input:
+		BEDGZ='{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz',
+		REFFLAT=CR_REF+"/genes/genes.refFlat"
+	output:
+		# NODIR = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.noDir.genes.refFlat',
+		WITHDIR ='{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
 	shell:
 		"""
-		Rscript scripts/generate_refFlat_script_both.R refFlat.refFlat {input}
+		Rscript scripts/generate_refFlat_script_both.R {input.REFFLAT} {input.BEDGZ}
 		"""
 
-rule MergeBamAlignment:
-	input:  unmapped = '{path}/{sample}_tagged_unmapped.bam',
-		mapped = '{path}/{sample}_Aligned_sorted_2.bam',
-		dictFile = config['GENOMEREF']+'.dict'
-	output: temp('{path}/{sample}_merged.bam')
-        threads: CORES
-        shell:
-                """java -Dpicard.useLegacyParser=false -Djava.io.tmpdir={TMPDIR} -Xmx4000m -jar {PICARD} MergeBamAlignment\
-                -REFERENCE_SEQUENCE {GENOMEREF}\
-                -UNMAPPED_BAM {input.unmapped}\
-              	-ALIGNED_BAM {input.mapped}\
-                -INCLUDE_SECONDARY_ALIGNMENTS false\
-                -PAIRED_RUN false\
-                -OUTPUT {output}
+# Convert stranded annotations to gtf format
+rule HMM_refFlat_to_gtf_WITHDIR:
+	input:
+		WITHDIR ='{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
+	output:
+		WITHDIR ='{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
+	shell:
+		"""
+		Rscript scripts/convertRefFlatToGTF.R {input.WITHDIR}
 		"""
 
-#TODO - need this?
-rule stage3:
-	input:  merged = '{path}/{sample}_merged.bam', reference = 'refFlat.refFlat'
-        output: temp('{path}/{sample}_gene_exon_tagged.bam')
-        threads: CORES
-        shell:
-                """
-		{DROPSEQ}/TagReadWithGeneFunction\
-                O={output}\
-                I={input.merged}\
-                ANNOTATIONS_FILE={input.reference}\
-                #TAG=GE\
-                CREATE_INDEX=true
-                """
-
+# Label .bam file with each HMM feature
 rule stage3_withDir:
-	input:	merged = '{path}/{sample}_merged.bam',
-		reference ='TAR_reads.bed.gz.withDir.refFlat.refFlat'
-	output: temp('{path}/{sample}_TAR_tagged_withDir.bam')
-	threads: CORES
-        shell:
-                """
-                {DROPSEQ}/TagReadWithGeneFunction\
-                O={output}\
-                I={input.merged}\
-                ANNOTATIONS_FILE={input.reference}\
-                #TAG=GE\
-                CREATE_INDEX=true
-                """
-rule stage3_noDir:
-        input:  merged = '{path}/{sample}_merged.bam',
-	        reference = 'TAR_reads.bed.gz.noDir.refFlat.refFlat'
-	output: temp('{path}/{sample}_TAR_tagged_noDir.bam')
-	threads: CORES
-        shell:
-                """
-                {DROPSEQ}/TagReadWithGeneFunction\
-                O={output}\
-                I={input.merged}\
-                ANNOTATIONS_FILE={input.reference}\
-                #TAG=GE\
-                CREATE_INDEX=true
-                """
+	input:
+		TAR_GTF = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
+	output:
+		OUTBAM='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bam', #TODO - temp()?
+		bamIndex='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bai',
+		SUMMARY='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagging_summary.txt'
+	params:
+		MERGED = '{DATADIR}/{sample}_cellranger_count/outs/possorted_genome_bam.bam'
+	threads: 1
+	shell:
+		"""
+        {DROPSEQ}/TagReadWithGeneFunction\
+			I={params.MERGED}\
+            O={output.OUTBAM}\
+			SUMMARY={output.SUMMARY}\
+            ANNOTATIONS_FILE={input.TAR_GTF}\
+			GENE_NAME_TAG=GN\
+			GENE_STRAND_TAG=GS\
+			USE_STRAND_INFO=true\
+            MAX_RECORDS_IN_RAM=5000000\
+			CREATE_INDEX=true
+        """
 
+# Convert non-stranded annotations to gtf format
+# rule HMM_refFlat_to_gtf_NODIR:
+# 	input:
+# 		NODIR = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
+# 	output:
+# 		NODIR = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.noDir.genes.refFlat.gtf'
+# 	shell:
+# 		"""
+# 		Rscript scripts/convertRefFlatToGTF.R {input.NODIR}
+# 		"""
+
+# rule stage3_noDir:
+# 	input:
+# 		MERGED = '{DATADIR}/{sample}_cellranger_count/outs/possorted_genome_bam.bam',
+# 		TAR_REFFLAT = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
+# 	output: '{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_noDir.bam' #TODO temp() needed here?
+# 	threads: 1
+# 	shell:
+# 		"""
+#         {DROPSEQ}/TagReadWithGeneFunction\
+#             O={output}\
+#             I={input.MERGED}\
+#             ANNOTATIONS_FILE={input.TAR_REFFLAT}\
+#             MAX_RECORDS_IN_RAM=10000000\
+# 			CREATE_INDEX=true
+#         """
 
 ########################################################################################################
 # Extract expression for single species
 ########################################################################################################
 
-#TODO - update to cellranger structure
-rule extract_expression:
-	input:
-		bam='{path}/{sample}_gene_exon_tagged.bam'
-	output: dge='{path}/{sample}_gene_expression_matrix.txt.gz',
-		cellSummary='{path}/{sample}_gene_dge.summary.txt'
-	params:
-		sample = '{sample}',
-		numbarcodes = config["expectedCells"]
-	shell:
-		"""{DROPSEQ}/DigitalExpression\
-		I={input.bam}\
-		O={output.dge}\
-		SUMMARY={output.cellSummary} \
-		NUM_CORE_BARCODES={params.numbarcodes}"""
+# Remove any non-ACGT characters from cell barcodes list -
+# rule cleanCellsList:
+# 	input:	'{DATADIR}/{sample}_cellranger_count/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
+# 	output: '{DATADIR}/{sample}_cellranger_count/TAR/cellList.txt'
+# 	shell:
+# 		"""
+# 		zcat {input} | sed 's/[^ACGT]//g' >> {output}
+# 		"""
 
-#TODO - update to cellranger structure
-rule getCellsList:
-	input:	'{path}/{sample}_gene_dge.summary.txt'
-	output: '{path}/{sample}_cellList.txt'
-	shell:
-		"""
-		sed '/^#/ d' < {input} > {input}.temp.txt
-		tail -n +3 {input}.temp.txt > {input}.temp2.txt
-		cut -f1 {input}.temp2.txt > {output}
-		rm {input}.temp.txt
-		rm {input}.temp2.txt
-		"""
-
+# Get counts matrix for HMM-annotated features
 rule extract_HMM_expression_withDir:
 	input:
-		bam='{path}/{sample}_TAR_tagged_withDir.bam',
-		barcodes='{path}/{sample}_cellList.txt'
-	output: '{path}/{sample}_TAR_expression_matrix_withDir.txt.gz'
+		BAM = '{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bam'
+	output:
+		COUNTS='{DATADIR}/{sample}_cellranger_count/TAR/TAR_expression_matrix_withDir.txt.gz',
+		SUMMARY='{DATADIR}/{sample}_cellranger_count/TAR/TAR_counts_summary.txt'
 	params:
-		sample = '{sample}',
-		numbarcodes = config["expectedCells"]
+		BARCODES = '{DATADIR}/{sample}_cellranger_count/outs/filtered_feature_bc_matrix/barcodes.tsv.gz',
+		TMPDIR = TMPDIR
 	shell:
-		"""{DROPSEQ}/DigitalExpression\
-		I={input.bam}\
-		O={output}\
-		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_TAR_withDir_dge.summary.txt \
-		CELL_BC_FILE={input.barcodes}"""
+		"""
+		{DROPSEQ}/DigitalExpression\
+			I={input.BAM}\
+			O={output.COUNTS}\
+			TMP_DIR={params.TMPDIR}\
+			SUMMARY={output.SUMMARY}\
+			CELL_BARCODE_TAG=CB\
+			MOLECULAR_BARCODE_TAG=UB\
+			GENE_NAME_TAG=GN\
+			GENE_STRAND_TAG=GS\
+			CELL_BC_FILE={params.BARCODES}
+		"""
+
+#TODO - change format of saved matrix ^^^
 
 rule extract_HMM_expression_noDir:
 	input:
-		bam='{path}/{sample}_TAR_tagged_noDir.bam',
-		barcodes='{path}/{sample}_cellList.txt'
-	output: '{path}/{sample}_TAR_expression_matrix_noDir.txt.gz'
+		BAM='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_noDir.bam'
+		# BARCODES = '{DATADIR}/{sample}_cellranger_count/TAR/cellList.txt'
+	output: '{DATADIR}/{sample}_cellranger_count/TAR/TAR_expression_matrix_noDir.txt.gz'
 	params:
 		sample = '{sample}',
-		numbarcodes = config["expectedCells"]
+		DATADIR = '{DATADIR}',
+		BARCODES = '{DATADIR}/{sample}_cellranger_count/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
 	shell:
-		"""{DROPSEQ}/DigitalExpression\
-		I={input.bam}\
-		O={output}\
-		SUMMARY={SAMPLEWDIR}/{params.sample}/{params.sample}_TAR_noDir_dge.summary.txt \
-		CELL_BC_FILE={input.barcodes}"""
+		"""
+		{DROPSEQ}/DigitalExpression\
+			I={input.BAM}\
+			O={output}\
+			SUMMARY={params.DATADIR}/{params.sample}_cellranger_count/TAR/TAR_noDir_dge.summary.txt \
+			CELL_BARCODE_TAG=CB\
+			CELL_BC_FILE={params.BARCODES}
+		"""
 
 #########################################################
 # Diff. TAR expression & BLAST
 #########################################################
 
 # generate differentially expressed genes and uTARs
-rule getDiffMarkers:
+rule getDiffFeatures:
 	input:
-		geneFile='{path}/{sample}_gene_expression_matrix.txt.gz',
-		hmmFile='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz'
-	output: '{path}/{sample}_diffMarkers.txt'
+		hmmFile='{DATADIR}/{sample}_cellranger_count/TAR/TAR_expression_matrix_withDir.txt.gz'
+	output:
+		'{DATADIR}/{sample}_cellranger_count/TAR/diffFeatures.txt'
+	params:
+		geneFile='{DATADIR}/{sample}_cellranger_count/outs/filtered_feature_bc_matrix'
 	shell:
 		"""
-		Rscript scripts/analyzeExpressionMat.R {input.geneFile} {input.hmmFile}
+		Rscript scripts/analyzeExpressionMat.R {params.geneFile} {input.hmmFile}
 		"""
 
 # from diff uTARs, extract fasta region to blast
-rule getDiffSeqsToBlast:
+rule getDiffRegionsToBlast:
 	input:
-		diffMarkers='{path}/{sample}_diffMarkers.txt',
-		bamFile='{path}/{sample}_Aligned_coordSort.bam',
-		bamIndex='{path}/{sample}_Aligned_coordSort.bam.bai'
-	output:	fastaRegions='{path}/{sample}_seqsToBlast.txt',
-		uTARDiffMarkers='{path}/{sample}_diffuTARMarkers.txt'
+		diffFeatures='{DATADIR}/{sample}_cellranger_count/TAR/diffFeatures.txt',
+		bamFile='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bam',
+		bamIndex='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bai'
+	output:
+		fastaRegions='{DATADIR}/{sample}_cellranger_count/TAR/TAR_seqsToBlast.txt',
+		uTARDiffFeatures='{DATADIR}/{sample}_cellranger_count/TAR/TAR_diffuTARFeatures.txt'
 	shell:
 		"""
-		Rscript scripts/getFastasForBlast.R {input.diffMarkers} {input.bamFile}
+		Rscript scripts/getFastasForBlast.R {input.diffFeatures} {input.bamFile}
 		"""
 
 # extract diff uTAR fastas
 rule getDiffSeqsToBlastFa:
 	input:
-		fastaHeaders="{path}/{sample}_seqsToBlast.txt",
-		fastaFile=config['GENOMEREF'],
-		fastaIndex=config['GENOMEREF']+'.dict'
+		fastaRegions='{DATADIR}/{sample}_cellranger_count/TAR/TAR_seqsToBlast.txt'
 	output:
-		"{path}/{sample}_seqsToBlast.fa"
+		TARfasta='{DATADIR}/{sample}_cellranger_count/TAR/TAR_seqsToBlast.fa'
+	params:
+		fastaFile=CR_REF+'/fasta/genome.fa',
+		fastaIndex=CR_REF+'/fasta/genome.fa'+'.dict'
 	shell:
 		"""
-		samtools faidx -r {input.fastaHeaders} {input.fastaFile} > {output}
+		samtools faidx -r {input.fastaRegions} {params.fastaFile} > {output}
 		"""
 
 # run blast on fastas
 rule ruleBlast:
 	input:
-		fastaFile="{path}/{sample}_seqsToBlast.fa",
-		blastDB=config['BLASTDB']
+		TARfasta='{DATADIR}/{sample}_cellranger_count/TAR/TAR_seqsToBlast.fa'
 	output:
-		"{path}/{sample}_blastResults.txt"
+		'{DATADIR}/{sample}_cellranger_count/TAR/blastResults.txt'
 	threads: CORES
+	params:
+		blastDB=config['BLASTDB']
 	shell:
 		"""
-		blastn -db {input.blastDB}/nt -query {input.fastaFile} -out {output} -outfmt '6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore' -max_target_seqs 5 -num_threads {CORES}
+		blastn -db {params.blastDB}/nt -query {input.TARfasta} -out {output} -outfmt '6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore' -max_target_seqs 5 -num_threads {CORES}
 		"""
 
 # label uTARs based on best blast results
 rule labelDiffuTARs:
-        input:
-              	diffMarkers='{path}/{sample}_diffuTARMarkers.txt',
-                blastResult='{path}/{sample}_blastResults.txt'
-        output: uTARSummary='{path}/{sample}_diffuTARMarkersLabeled.txt',
-        shell:
-                """
-                Rscript scripts/examineBlastResults.R {input.diffMarkers} {input.blastResult}
-                """
+	input:
+		diffFeatures='{DATADIR}/{sample}_cellranger_count/TAR/TAR_diffuTARFeatures.txt',
+		blastResult='{DATADIR}/{sample}_cellranger_count/TAR/blastResults.txt'
+	output:
+		uTARSummary='{DATADIR}/{sample}_cellranger_count/TAR/TAR_diffuTARFeaturesLabeled.txt'
+	shell:
+		"""
+		Rscript scripts/examineBlastResults.R {input.diffFeatures} {input.blastResult}
+		"""
 
 rule getMatsSteps:
-	input: 	gene='{path}/{sample}_gene_expression_matrix.txt.gz',
-		hmm1='{path}/{sample}_TAR_expression_matrix_withDir.txt.gz',
-		hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz',
-		bamFile='{path}/{sample}_Aligned_coordSort.bam',
-		baiFile='{path}/{sample}_Aligned_coordSort.bam.bai'
-
-	output: '{path}/{sample}_getMats.txt'
+	input:
+		COUNTS='{DATADIR}/{sample}_cellranger_count/TAR/TAR_expression_matrix_withDir.txt.gz',
+		# hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz',
+		bamFile='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bam',
+		bamIndex='{DATADIR}/{sample}_cellranger_count/TAR/TAR_tagged_withDir.bai'
+	output: '{DATADIR}/{sample}_cellranger_count/TAR/getMats.txt'
 	shell:
 		"""echo "Expression matrices ready" > {output}"""
