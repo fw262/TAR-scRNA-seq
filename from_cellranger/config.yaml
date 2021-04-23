@@ -1,16 +1,10 @@
 Samples: # sample name, pointing to cellranger count output {Samples}_cellranger_count/
     scMuscle_ncRNA_v5:
 
-# GENOMEREF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.dna.toplevel.fa
-# REFGTF: /fs/cbsuvlaminck2/workdir/References/Chick/GRCg6a/Gallus_gallus.GRCg6a.96.gtf
-
-
 CR_REF: /workdir/dwm269/genomes/mm10_all/mm10_cellranger #DWM - directory containing cellranger count reference
-CR_COUNT_EXEC: /home/dwm269/cellranger-5.0.0/cellranger #DWM - executable path for cellranger count
 
 DATADIR: /workdir/dwm269/muscle_data/ncRNA/data # directory where cellranger_count outputs are stored - be sure to use an absolute path (starting with root)
-TMPDIR: ./tmp #temporary directory
-
+TMPDIR: ./tmp # directory for temporary files
 
 PICARD: /home/dwm269/miniconda3/envs/scTAR/share/picard-2.18.29-0 /picard.jar
 DROPSEQ: /home/dwm269/miniconda3/envs/scTAR1.1/share/dropseq_tools-2.4.0-1
@@ -22,6 +16,6 @@ BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database
 #FULLSCRIPTPATH: #/local/workdir/fw262/uTARAnalysisTool/HMM-scRNA-seq/testGitHub/scripts
 
 CORES: 15 # how many cores to give for each process, snakemake automatically parallelize process using "snakemake -j {numTotalCores}"
-# expectedCells: 5000
+
 MERGEBP: 500
 THRESH: 10000000
