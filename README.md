@@ -2,6 +2,7 @@
 Author: Michael Wang (fw262@cornell.edu)
 
 Please cite the following paper:
+
 [Wang, Michael FZ, et al. "Uncovering transcriptional dark matter via gene annotation independent single-cell RNA sequencing analysis." _Nature Communications_ 12.1 (2021): 1-10.](https://www.nature.com/articles/s41467-021-22496-3)
 
 ## Outline
