@@ -2,7 +2,7 @@
 
 # sample name, pointing to cellranger count output directory (same as the ""--id" input for cellranger count)
 Samples:
-    scMuscle_ncRNA_v5:
+    snRNA-seq_Tibialis_cellranger_count:
 
 CR_REF: /workdir/dwm269/genomes/mm10_all/mm10_cellranger #DWM - directory containing cellranger count reference
 

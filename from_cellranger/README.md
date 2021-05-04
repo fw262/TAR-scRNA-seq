@@ -86,35 +86,15 @@ From the command line, cd into the directory ```TAR-SCRNA-seq/from_cellranger```
 
 Please ensure the Snakefile and config.yaml files as well as the scripts folder are in the directory where you intend to run the pipeline.
 
-## Test datset - TODO- make toy dataset
-
-A subset of the chicken embryonic heart development sequencing data is attached in the **testData_small** folder. To download the corresponding references for this chicken dataset, please visit https://useast.ensembl.org/Gallus_gallus/Info/Index. The full chicken embryonic heart development dataset is available at [GSE149457](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149457). Please note that full expression matrices (gene and unstranded TAR) are also included for the day 4 and day 7 datasets in the **testData_small** folder.
-
-
-To generate expression matrix (only stranded TARs supported in this pipeline), please run the snakemake rule "getMats" with the following command:
-```
-snakemake -R --until getMats -j [# total cores]
-```
-
-To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after issuing the command above), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
-```
-cp testData_small/day7_0.25m_*expression_matrix* results_chicken/day7_0.25m/
-cp testData_small/day4_0.25m_*expression_matrix* results_chicken/day4_0.25m/
-```
-
-To run the full pipeline including generating a list of labeled differentially expressed uTARs, run the default snakemake command:
-```
-snakemake -j [# cores]
-```
-
-Assuming the expression matrices are available, the test dataset should take less than 30 minutes to generate a list of labeled uTARs with 12 cores and 16GB of RAM.
+## Test datset -
+TODO- make toy dataset
 
 ## Output - TODO- update
-
-- RefFlat format of TAR features with and without consideration of directionality stored in "**TAR_reads.bed.gz.withDir.refFlat.refFlat**" and "**TAR_reads.bed.gz.noDir.refFlat.refFlat**".
-- Digital expression matrix for gene features is stored in "**results_out/{sample}/{sample}\_gene_expression_matrix.txt.gz**".
-- Digital expression matrix for TAR features, without consideration of TAR directionality relative to annotated gene features, is stored in "**results_out/{sample}/{sample}\_TAR_expression_matrix_noDir.txt.gz**".
-- Digital expression matrix for TAR features, with consideration of TAR directionality relative to annotated gene features, is stored in "**results_out/{sample}/{sample}\_TAR_expression_matrix_withDir.txt.gz**".
+All output files are stored in a directory inside of the cellranger count output  ```cellranger_count/TAR/```
+- RefFlat format of TAR features with and without consideration of directionality stored in "**TAR_reads.bed.gz.withDir.genes.refFlat**" and "**TAR_reads.bed.gz.noDir.refFlat.refFlat**".
+- Digital expression matrix for gene features is stored in "**gene_expression_matrix.txt.gz**".
+- Digital expression matrix for TAR features, without consideration of TAR directionality relative to annotated gene features, is stored in "**TAR_expression_matrix_noDir.txt.gz**".
+- Digital expression matrix for TAR features, with consideration of TAR directionality relative to annotated gene features, is stored in "**TAR_expression_matrix_withDir.txt.gz**".
 - A list of differentially expressed genes and uTARs in "**results_out/{sample}/{sample}\_diffMarkers.txt**".
 - A list of differentially expressed uTARs and their labels based on BLASTn results in "**results_out/{sample}/{sample}\_diffuTARMarkersLabeled.txt**".
 - Results of the BLASTn analysis for differentially expressed uTARs in "**results_out/{sample}/{sample}\_blastResults.txt**".
@@ -134,4 +114,4 @@ Please refer to the "SingleCellHMM_Run_combined_bam_HMM_features.log" created in
 ```
 cannot read: chr*_HMM.bed: No such file or directory
 ```
-Please manually install [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html) and [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html) and make sure you can load these packages in R. This error indicates that the groHMM R script did not finish running to generate groHMM bed files.
+Please manually install [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html) and [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html) and make sure you can load these packages in R. This error indicates that the groHMM R script did not finish running to generate groHMM .bed files.
