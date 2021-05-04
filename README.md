@@ -1,9 +1,8 @@
 # TAR-scRNA-seq
 Author: Michael Wang (fw262@cornell.edu)
 
-Biorxiv preprint link [here](https://www.biorxiv.org/content/10.1101/2020.07.31.229575v1).
-
-The peer reviewed manuscript is currently in press at Nature Communications.
+Please cite the following paper:
+[Wang, Michael FZ, et al. "Uncovering transcriptional dark matter via gene annotation independent single-cell RNA sequencing analysis." _Nature Communications_ 12.1 (2021): 1-10.](https://www.nature.com/articles/s41467-021-22496-3)
 
 ## Outline
 TAR-scRNA-seq (Transcriptionally Active Region single-cell RNA-seq) is a workflow that enables the discovery of transcripts beyond those listed in gene annotations in scRNA-seq analysis. The workflow aligns single-cell tagged sequencing reads to a genome without gene annotations using [STAR](https://github.com/alexdobin/STAR). The alignment files are then used to define *de-novo* transcriptionally active regions (TARs) using a modified version of [groHMM](https://github.com/dankoc/groHMM) based on regions along the genome with signficant read coverage. TARs are compared against an existing set of gene annotations to label them as annotated (aTARs) when they overlap with existing gene annotations or unanotated (uTARs) when they do not. These labeled TARs are then used to generate a TAR feature expression matrix in parallel with a gene expression matrix. Seurat tools are used to find differentially expressed uTARs which are labeled based on BLASTn sequence homology.
