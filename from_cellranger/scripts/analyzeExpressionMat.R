@@ -27,7 +27,17 @@ if (length(args) == 0) {
 }
 
 cat("Input arguments are good\n")
-cat("Loading required packages (Seurat, data.table, dplyr, stringr).\n")
+cat("Loading required packages (Matrix, Seurat, data.table, dplyr, stringr).\n")
+
+if (!require('R.utils')) {
+  install.packages('R.utils')
+}
+library(R.utils,  verbose=F)
+
+if (!require('Matrix')) {
+  install.packages('Matrix')
+}
+library(Matrix,  verbose=F)
 
 if (!require('Seurat')) {
   install.packages('Seurat')
@@ -51,6 +61,36 @@ library(stringr, verbose=F)
 
 cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
 
+# Borrowed from the Marioni Lab, DropletUtils package (https://rdrr.io/github/MarioniLab/DropletUtils/src/R/write10xCounts.R)
+#   (Had R version issues getting it to work as a dependency)
+#' @importFrom utils write.table
+#' @importFrom Matrix writeMM
+#' @importFrom R.utils gzip
+.write_sparse <- function(path, x, barcodes, gene.id, gene.symbol, gene.type) {
+  # dir.create(path, showWarnings=FALSE)
+  gene.info <- data.frame(gene.id, gene.symbol, stringsAsFactors=FALSE)
+
+  gene.info$gene.type <- rep(gene.type, length.out=nrow(gene.info))
+  mhandle <- file.path(path, "matrix.mtx")
+  bhandle <- gzfile(file.path(path, "barcodes.tsv.gz"), open="wb")
+  fhandle <- gzfile(file.path(path, "features.tsv.gz"), open="wb")
+  on.exit({
+    close(bhandle)
+    close(fhandle)
+  })
+
+  writeMM(x, file=mhandle)
+  write(barcodes, file=bhandle)
+  write.table(gene.info, file=fhandle, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
+
+  # Annoyingly, writeMM doesn't take connection objects.
+  gzip(mhandle)
+
+
+  return(NULL)
+}
+
+
 FindDiffExprFeatures <-
   function(
     geneFile,
@@ -66,10 +106,9 @@ FindDiffExprFeatures <-
     cat("Loading in expression matrix...")
     geneMat <- Seurat::Read10X(geneFile)
     cat("Done.\n")
-    
+
     # load HMM matrix and combine with gene expression matrix and subset for valid cells ####
     cat("Loading in HMM matrix...")
-    
     #TODO- clean this up...
     hmmMat <- fread(
       hmmFile,
@@ -77,19 +116,37 @@ FindDiffExprFeatures <-
       header = T,
       stringsAsFactors = F,
       showProgress = F
-    ) 
+    )
     rownames(hmmMat) <- tolower(rownames(hmmMat))
     hmmMat <- as.data.frame(hmmMat) # force to data frame
     rownames(hmmMat) <- hmmMat$GENE # set the rownames as GENEs
     hmmMat <- hmmMat[, -1] # take out first column
     hmmMat <- as.sparse(hmmMat) #force to sparse to match with gene matrix
     cat("Done.\n")
-    
+
+    cat("Saving TAR matrix in MTX format...")
+    newMatDirName <- paste0(
+      stringr::str_remove(hmmFile,"TAR_expression_matrix_withDir.txt.gz"),
+      "TAR_feature_bc_matrix"
+    )
+    if(!dir.exists(newMatDirName)){
+      dir.create(newMatDirName)
+    }
+    .write_sparse(
+      path=newMatDirName,
+      x=hmmMat,
+      barcodes=colnames(hmmMat),
+      gene.id=rownames(hmmMat),
+      gene.symbol=rownames(hmmMat),
+      gene.type="TAR"
+    )
+    cat("Done.")
+
     combined.mat <- rbind(geneMat, hmmMat[,colnames(geneMat)])
-    combined.seu <- 
-      CreateSeuratObject(counts = combined.mat) 
+    combined.seu <-
+      CreateSeuratObject(counts = combined.mat)
     cat("Finished creating Seurat object.\n")
-    
+
     # identify aTARs and uTARs
     numdash <- str_count(rownames(combined.seu), "-")
     outInd <- numdash >= 5 & endsWith(rownames(combined.seu), "-0")
@@ -98,17 +155,17 @@ FindDiffExprFeatures <-
     geneOnly.features <- rownames(combined.seu)[geneInd]
     inGene <- rownames(combined.seu)[inInd]
     outGene <- rownames(combined.seu)[outInd]
-    
+
     out <- combined.seu[c(inGene, outGene), ]
     combined.seu[["percent.outHMM"]] <-
       PercentageFeatureSet(
-        out, 
+        out,
         features = outGene
       )
-    
+
     # Preprocess data ####
-    cat("Preprocessing data...\n") 
-    combined.seu <- 
+    cat("Preprocessing data...\n")
+    combined.seu <-
       NormalizeData(combined.seu)%>%
       ScaleData(features = rownames(combined.seu)) %>%
       RunPCA(
@@ -122,12 +179,12 @@ FindDiffExprFeatures <-
         verbose=F
       )  %>% FindNeighbors(
         dims = 1:pcaDims
-      ) %>% 
+      ) %>%
       FindClusters(
         resolution = res_param
       )
     cat("Done preprocessing.\n")
-    
+
     # DGE ####
     cat("Running DGE...\n")
     allMarkers <-
@@ -138,22 +195,22 @@ FindDiffExprFeatures <-
         logfc.threshold = 0.25
       )
     cat("Done with DGE\n")
-    
+
     numdash <- str_count(allMarkers$gene, "-")
     outInd <- numdash >= 5 & endsWith(allMarkers$gene, "-0")
     inInd <- numdash >= 5 & !endsWith(allMarkers$gene, "-0")
     geneInd <- !(outInd | inInd)
-    
+
     markersUTAR <- allMarkers[outInd, ]
     markersUTAR <- markersUTAR[order(markersUTAR$avg_log2FC, decreasing = T), ]
     markersUTAR <- markersUTAR %>% group_by(cluster) %>% top_n(n = nDiffFeat, wt = avg_log2FC)
-    
+
     markersGenes <- allMarkers[geneInd, ]
     markersGenes <- markersGenes[order(markersGenes$avg_log2FC, decreasing = T), ]
     markersGenes <- markersGenes %>% group_by(cluster) %>% top_n(n = nDiffFeat, wt = avg_log2FC)
-    
+
     cat("Finished finding differentially expressed genes and uTAR markers.\n")
-    
+
     return(rbind(markersGenes, markersUTAR))
   }
 

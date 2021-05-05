@@ -6,7 +6,7 @@ Samples:
 
 CR_REF: /workdir/dwm269/genomes/mm10_all/mm10_cellranger #DWM - directory containing cellranger count reference
 
-DATADIR: /workdir/dwm269/muscle_data/ncRNA/data # directory where cellranger_count outputs are stored - be sure to use an absolute path (starting with root)
+DATADIR: /workdir/dwm269/totalRNA/data # directory where cellranger_count outputs are stored - be sure to use an absolute path (starting with root)
 TMPDIR: ./tmp # directory for temporary files
 
 ########################################################################################################

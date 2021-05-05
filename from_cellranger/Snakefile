@@ -97,6 +97,9 @@ rule makeOutDir:
 #	output: "combined_bam.bam"
 #	shell: """samtools view -s {downSamp} -b {input} > {output}
 
+# TODO- add spurious-A peak removal
+#		Tentatively planning in using a tool from SCAFE, but might need to re-write part of it...
+
 # Run HMM
 rule calcHMMbed:
 	input: '{DATADIR}/{sample}/outs/possorted_genome_bam.bam' #need absolute path
@@ -136,8 +139,8 @@ rule stage3_withDir:
 	input:
 		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
 	output:
-		OUTBAM='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam', #TODO - temp()?
-		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai',
+		OUTBAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
+		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'),
 		SUMMARY='{DATADIR}/{sample}/TAR/TAR_tagging_summary.txt'
 	params:
 		MERGED = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam'
@@ -156,6 +159,7 @@ rule stage3_withDir:
 			CREATE_INDEX=true
         """
 
+# Uncomment to generate a count matrix that does not consider strandedness
 # Convert non-stranded annotations to gtf format
 # rule HMM_refFlat_to_gtf_NODIR:
 # 	input:
@@ -167,11 +171,12 @@ rule stage3_withDir:
 # 		Rscript scripts/convertRefFlatToGTF.R {input.NODIR}
 # 		"""
 
+# Uncomment to generate a count matrix that does not consider strandedness
 # rule stage3_noDir:
 # 	input:
 # 		MERGED = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam',
 # 		TAR_REFFLAT = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
-# 	output: '{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam' #TODO temp() needed here?
+# 	output: temp()'{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam')
 # 	threads: 1
 # 	shell:
 # 		"""
@@ -184,10 +189,11 @@ rule stage3_withDir:
 #         """
 
 ########################################################################################################
-# Extract expression for single species
+# Extract expression for each TAR
 ########################################################################################################
 
-# Remove any non-ACGT characters from cell barcodes list -
+#TODO- Do we need this?
+# Remove any non-ACGT characters from cell barcodes list
 # rule cleanCellsList:
 # 	input:	'{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
 # 	output: '{DATADIR}/{sample}/TAR/cellList.txt'
@@ -221,25 +227,38 @@ rule extract_HMM_expression_withDir:
 		"""
 
 #TODO - change format of saved matrix ^^^
+# 			Still need to write the script...
+#
+# rule convert_count_matrix_to_mex:
+# 	input: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
+# 	output:
+# 		MTXDIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
+#
+# 	shell:
+# 		"""
+# 			mkdir {output.MEXDIR}
+# 			Rscript txtToMEX.R {input}
+# 		"""
 
-rule extract_HMM_expression_noDir:
-	input:
-		BAM='{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam'
-		# BARCODES = '{DATADIR}/{sample}/TAR/cellList.txt'
-	output: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_noDir.txt.gz'
-	params:
-		sample = '{sample}',
-		DATADIR = '{DATADIR}',
-		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
-	shell:
-		"""
-		{DROPSEQ}/DigitalExpression\
-			I={input.BAM}\
-			O={output}\
-			SUMMARY={params.DATADIR}/{params.sample}/TAR/TAR_noDir_dge.summary.txt \
-			CELL_BARCODE_TAG=CB\
-			CELL_BC_FILE={params.BARCODES}
-		"""
+# Uncomment to generate a count matrix that does not consider strandedness
+# rule extract_HMM_expression_noDir:
+# 	input:
+# 		BAM='{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam'
+# 		# BARCODES = '{DATADIR}/{sample}/TAR/cellList.txt'
+# 	output: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_noDir.txt.gz'
+# 	params:
+# 		sample = '{sample}',
+# 		DATADIR = '{DATADIR}',
+# 		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
+# 	shell:
+# 		"""
+# 		{DROPSEQ}/DigitalExpression\
+# 			I={input.BAM}\
+# 			O={output}\
+# 			SUMMARY={params.DATADIR}/{params.sample}/TAR/TAR_noDir_dge.summary.txt \
+# 			CELL_BARCODE_TAG=CB\
+# 			CELL_BC_FILE={params.BARCODES}
+# 		"""
 
 #########################################################
 # Diff. TAR expression & BLAST
@@ -250,7 +269,11 @@ rule getDiffFeatures:
 	input:
 		hmmFile='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
 	output:
-		'{DATADIR}/{sample}/TAR/diffFeatures.txt'
+		diffFeatures='{DATADIR}/{sample}/TAR/diffFeatures.txt',
+		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
+		MTX_BC='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
+		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
+		MTX_MTX='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/matrix.mtx.gz'
 	params:
 		geneFile='{DATADIR}/{sample}/outs/filtered_feature_bc_matrix'
 	shell:
@@ -315,6 +338,10 @@ rule labelDiffuTARs:
 rule getMatsSteps:
 	input:
 		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz',
+		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
+		MTX_BC='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
+		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
+		MTX_MTX='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/matrix.mtx.gz',
 		# hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz',
 		bamFile='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
 		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'

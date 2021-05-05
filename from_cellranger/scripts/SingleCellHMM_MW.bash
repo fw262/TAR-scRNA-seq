@@ -128,7 +128,7 @@ done
 
 cd toremove
 for f in *
-do gzip ${f} &
+do rm ${f} &
 done
 
 cd ${CURDIR}
