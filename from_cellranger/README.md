@@ -84,7 +84,7 @@ Please change the variable names in the config.yaml as required for your analysi
 
 From the command line, cd into the directory ```TAR-SCRNA-seq/from_cellranger```
 
-Please ensure the Snakefile and config.yaml files as well as the scripts folder are in the directory where you intend to run the pipeline.
+Please ensure the Snakefile and cellranger_config.yaml files as well as the scripts folder are in the directory where you intend to run the pipeline.
 
 ## Test datset -
 TODO- make toy dataset

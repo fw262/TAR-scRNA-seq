@@ -10,7 +10,7 @@ if (length(args) == 0) {
   feats <- 100
   nFeatMin <- 200
   nFeatMax <- 2500
-  pcaDims <- 20
+  n.pcs <- 50
   res_param <- 0.8
 } else if (length(args) == 9) {
   geneFile <- args[1] # first argument is gene File
@@ -20,7 +20,7 @@ if (length(args) == 0) {
   feats <- args[5]
   nFeatMin <- args[6]
   nFeatMax <- args[7]
-  pcaDims <- args[8]
+  n.pcs <- args[8]
   res_param <- args[9]
 } else {
   stop("Please specify all parameters.")
@@ -30,34 +30,34 @@ cat("Input arguments are good\n")
 cat("Loading required packages (Matrix, Seurat, data.table, dplyr, stringr).\n")
 
 if (!require('R.utils')) {
-  install.packages('R.utils')
+  install.packages('R.utils', repo="https://cloud.r-project.org")
 }
-library(R.utils,  verbose=F)
+suppressMessages(library(R.utils, verbose=F))
 
-if (!require('Matrix')) {
-  install.packages('Matrix')
-}
-library(Matrix,  verbose=F)
+# if (!require('Matrix')) {
+#   install.packages('Matrix', repo="https://cloud.r-project.org")
+# }
+suppressMessages(library(Matrix,  verbose=F))
 
 if (!require('Seurat')) {
-  install.packages('Seurat')
+  install.packages('Seurat', repo="https://cloud.r-project.org")
 }
-library(Seurat,  verbose=F) # Please use Seurat >= v4.0
+suppressMessages(library(Seurat,  verbose=F)) # Please use Seurat >= v4.0
 
 if (!require('data.table')) {
-  install.packages("data.table")
+  install.packages("data.table", repo="https://cloud.r-project.org")
 }
-library(data.table,  verbose=F)
+suppressMessages(library(data.table,  verbose=F))
 
 if (!require('dplyr')) {
-  install.packages("dplyr")
+  install.packages("dplyr", repo="https://cloud.r-project.org")
 }
-library(dplyr,  verbose=F)
+suppressMessages(library(dplyr,  verbose=F))
 
 if (!require('stringr')) {
-  install.packages("stringr")
+  install.packages("stringr", repo="https://cloud.r-project.org")
 }
-library(stringr, verbose=F)
+suppressMessages(library(stringr, verbose=F))
 
 cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
 
@@ -86,63 +86,82 @@ cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
   # Annoyingly, writeMM doesn't take connection objects.
   gzip(mhandle)
 
-
   return(NULL)
 }
 
+# Calculate the number of PCs that contain some proportion (95%) of the variance
+.find_npcs <- function(seu, var.toal=0.95, reduction="pca"){
+  if(is.null(seu@reductions[[reduction]])){
+    cat("Reduction", reduction, "not found!")
+    return(NULL)
+  }
+
+  tmp.var <- (seu@reductions[[reduction]]@stdev)^2
+  var.cut <- var.toal*sum(tmp.var)
+  n.pcs=0
+  var.sum = 0
+  while(var.sum < var.cut){
+    n.pcs = n.pcs + 1
+    var.sum <- var.sum + tmp.var[n.pcs]
+  }
+
+  return(n.pcs)
+}
 
 FindDiffExprFeatures <-
   function(
     geneFile,
-    hmmFile,
+    TARFile,
     nDiffFeat = 5,
     cells = 2,
     feats = 100,
     nFeatMin = 200,
     nFeatMax = 2500,
-    pcaDims = 20,
+    n.pcs = 50,
     res_param = 0.8
   ){
     cat("Loading in expression matrix...")
     geneMat <- Seurat::Read10X(geneFile)
     cat("Done.\n")
 
-    # load HMM matrix and combine with gene expression matrix and subset for valid cells ####
-    cat("Loading in HMM matrix...")
+    # load TAR matrix and combine with gene expression matrix and subset for valid cells ####
+    cat("Loading in TAR matrix...")
     #TODO- clean this up...
-    hmmMat <- fread(
-      hmmFile,
+    TARMat <- fread(
+      TARFile,
       sep = "\t",
       header = T,
       stringsAsFactors = F,
       showProgress = F
     )
-    rownames(hmmMat) <- tolower(rownames(hmmMat))
-    hmmMat <- as.data.frame(hmmMat) # force to data frame
-    rownames(hmmMat) <- hmmMat$GENE # set the rownames as GENEs
-    hmmMat <- hmmMat[, -1] # take out first column
-    hmmMat <- as.sparse(hmmMat) #force to sparse to match with gene matrix
+    rownames(TARMat) <- tolower(rownames(TARMat))
+    TARMat <- as.data.frame(TARMat) # force to data frame
+    rownames(TARMat) <- TARMat$GENE # set the rownames as GENEs
+    TARMat <- TARMat[, -1] # take out first column
+    TARMat <- as.sparse(TARMat) #force to sparse to match with gene matrix
     cat("Done.\n")
 
     cat("Saving TAR matrix in MTX format...")
     newMatDirName <- paste0(
-      stringr::str_remove(hmmFile,"TAR_expression_matrix_withDir.txt.gz"),
+      stringr::str_remove(TARFile,"TAR_expression_matrix_withDir.txt.gz"),
       "TAR_feature_bc_matrix"
     )
     if(!dir.exists(newMatDirName)){
       dir.create(newMatDirName)
     }
-    .write_sparse(
-      path=newMatDirName,
-      x=hmmMat,
-      barcodes=colnames(hmmMat),
-      gene.id=rownames(hmmMat),
-      gene.symbol=rownames(hmmMat),
-      gene.type="TAR"
-    )
-    cat("Done.")
+    if(!file.exists(paste0(newMatDirName,"/matrix.mtx.gz"))){
+      .write_sparse(
+        path=newMatDirName,
+        x=TARMat,
+        barcodes=colnames(TARMat),
+        gene.id=rownames(TARMat),
+        gene.symbol=rownames(TARMat),
+        gene.type="TAR"
+      )
+    }
+    cat("Done.\n")
 
-    combined.mat <- rbind(geneMat, hmmMat[,colnames(geneMat)])
+    combined.mat <- rbind(geneMat, TARMat[,colnames(geneMat)])
     combined.seu <-
       CreateSeuratObject(counts = combined.mat)
     cat("Finished creating Seurat object.\n")
@@ -157,7 +176,7 @@ FindDiffExprFeatures <-
     outGene <- rownames(combined.seu)[outInd]
 
     out <- combined.seu[c(inGene, outGene), ]
-    combined.seu[["percent.outHMM"]] <-
+    combined.seu[["percent.outTAR"]] <-
       PercentageFeatureSet(
         out,
         features = outGene
@@ -166,23 +185,48 @@ FindDiffExprFeatures <-
     # Preprocess data ####
     cat("Preprocessing data...\n")
     combined.seu <-
-      NormalizeData(combined.seu)%>%
-      ScaleData(features = rownames(combined.seu)) %>%
-      RunPCA(
-        reduction.name = "pca_uTAR",
-        reduction.key="PCuTAR_",
-        features = outGene,
-        verbose=F
-      ) %>%
-      RunPCA(# run gene pca, clustering last so Idents gets filled with gene exp clustering
-        features = geneOnly.features,
-        verbose=F
-      )  %>% FindNeighbors(
-        dims = 1:pcaDims
-      ) %>%
-      FindClusters(
-        resolution = res_param
-      )
+      NormalizeData(combined.seu, verbose=F) %>%
+      ScaleData(features = rownames(combined.seu),verbose=F)
+
+    combined.seu <- RunPCA(
+      combined.seu,
+      reduction.name = "pca_uTAR",
+      reduction.key="PCuTAR_",
+      features = outGene,
+      n.pcs = n.pcs,
+      nfeatures.print = 0,
+      verbose=F
+    )
+
+    # run gene pca, clustering last so Idents gets filled with gene exp clustering
+    combined.seu <- RunPCA(
+      combined.seu,
+      reduction.name = "pca_genes",
+      reduction.key="PCgenes_",
+      features = geneOnly.features,
+      n.pcs = n.pcs,
+      nfeatures.print = 0,
+      verbose=F
+    )
+
+    # Find number of PCs that account for 95% of variance
+    npcs_significant <- .find_npcs(
+      combined.seu,
+      var.toal=0.95,
+      reduction="pca_genes"
+    )
+    print(npcs_significant)
+    print(combined.seu@reductions$pca_genes)
+    combined.seu <- FindNeighbors(
+      combined.seu,
+      reduction="pca_genes",
+      dims=1:npcs_significant
+    )
+    print("214")
+    combined.seu <- FindClusters(
+      combined.seu,
+      resolution = res_param
+    )
     cat("Done preprocessing.\n")
 
     # DGE ####
@@ -203,11 +247,15 @@ FindDiffExprFeatures <-
 
     markersUTAR <- allMarkers[outInd, ]
     markersUTAR <- markersUTAR[order(markersUTAR$avg_log2FC, decreasing = T), ]
-    markersUTAR <- markersUTAR %>% group_by(cluster) %>% top_n(n = nDiffFeat, wt = avg_log2FC)
+    markersUTAR <- markersUTAR %>%
+      group_by(cluster) %>%
+      top_n(n = nDiffFeat, wt = avg_log2FC)
 
     markersGenes <- allMarkers[geneInd, ]
     markersGenes <- markersGenes[order(markersGenes$avg_log2FC, decreasing = T), ]
-    markersGenes <- markersGenes %>% group_by(cluster) %>% top_n(n = nDiffFeat, wt = avg_log2FC)
+    markersGenes <- markersGenes %>%
+      group_by(cluster) %>%
+      top_n(n = nDiffFeat, wt = avg_log2FC)
 
     cat("Finished finding differentially expressed genes and uTAR markers.\n")
 
@@ -216,22 +264,21 @@ FindDiffExprFeatures <-
 
 diffFeatures <- FindDiffExprFeatures(
   geneFile = geneFile,
-  hmmFile = TARFile,
+  TARFile = TARFile,
   nDiffFeat = nDiffFeat,
   cells = cells,
   feats = feats,
   nFeatMin = nFeatMin,
   nFeatMax = nFeatMax,
-  pcaDims = pcaDims,
+  n.pcs = n.pcs,
   res_param = res_param
 )
 
 if(dirname(TARFile) != "."){
   sampleName <- tail(unlist(strsplit(dirname(TARFile), "/")), n = 1)
-  output <-
-    paste0(dirname(TARFile), "/", "diffFeatures.txt")
+  output <- paste0(dirname(TARFile), "/", "diff_Expressed_Features.txt")
 }else{
-  output <- paste0("diffFeatures.txt")
+  output <- paste0("diff_Expressed_Features.txt")
 }
 
 colnames(diffFeatures) <-

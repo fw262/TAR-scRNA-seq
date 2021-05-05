@@ -46,7 +46,7 @@ GTFTOGENEPRED = config['GTFTOGENEPRED']
 ########################################################################################################
 rule all:
 ############## original default call here
-	input: expand('{DATADIR}/{sample}/TAR/TAR_diffuTARFeaturesLabeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
+	input: expand('{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features_Labeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
 rule getMats:
 	input: expand('{DATADIR}/{sample}/TAR/getMats.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
@@ -140,17 +140,15 @@ rule stage3_withDir:
 		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
 	output:
 		OUTBAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
-		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'),
-		SUMMARY='{DATADIR}/{sample}/TAR/TAR_tagging_summary.txt'
+		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
 	params:
-		MERGED = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam'
+		INBAM = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam'
 	threads: 1
 	shell:
 		"""
         {DROPSEQ}/TagReadWithGeneFunction\
-			I={params.MERGED}\
+			I={params.INBAM}\
             O={output.OUTBAM}\
-			SUMMARY={output.SUMMARY}\
             ANNOTATIONS_FILE={input.TAR_GTF}\
 			GENE_NAME_TAG=GN\
 			GENE_STRAND_TAG=GS\
@@ -207,8 +205,7 @@ rule extract_HMM_expression_withDir:
 	input:
 		BAM = '{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'
 	output:
-		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz',
-		SUMMARY='{DATADIR}/{sample}/TAR/TAR_counts_summary.txt'
+		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
 	params:
 		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz',
 		TMPDIR = TMPDIR
@@ -218,27 +215,12 @@ rule extract_HMM_expression_withDir:
 			I={input.BAM}\
 			O={output.COUNTS}\
 			TMP_DIR={params.TMPDIR}\
-			SUMMARY={output.SUMMARY}\
 			CELL_BARCODE_TAG=CB\
 			MOLECULAR_BARCODE_TAG=UB\
 			GENE_NAME_TAG=GN\
 			GENE_STRAND_TAG=GS\
 			CELL_BC_FILE={params.BARCODES}
 		"""
-
-#TODO - change format of saved matrix ^^^
-# 			Still need to write the script...
-#
-# rule convert_count_matrix_to_mex:
-# 	input: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
-# 	output:
-# 		MTXDIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
-#
-# 	shell:
-# 		"""
-# 			mkdir {output.MEXDIR}
-# 			Rscript txtToMEX.R {input}
-# 		"""
 
 # Uncomment to generate a count matrix that does not consider strandedness
 # rule extract_HMM_expression_noDir:
@@ -269,7 +251,7 @@ rule getDiffFeatures:
 	input:
 		hmmFile='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
 	output:
-		diffFeatures='{DATADIR}/{sample}/TAR/diffFeatures.txt',
+		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
 		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
 		MTX_BC='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
 		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
@@ -284,12 +266,12 @@ rule getDiffFeatures:
 # from diff uTARs, extract fasta region to blast
 rule getDiffRegionsToBlast:
 	input:
-		diffFeatures='{DATADIR}/{sample}/TAR/diffFeatures.txt',
+		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
 		bamFile='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
 		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'
 	output:
 		fastaRegions='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.txt',
-		uTARDiffFeatures='{DATADIR}/{sample}/TAR/TAR_diffuTARFeatures.txt'
+		uTARDiffFeatures='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features.txt'
 	shell:
 		"""
 		Rscript scripts/getFastasForBlast.R {input.diffFeatures} {input.bamFile}
@@ -314,7 +296,7 @@ rule ruleBlast:
 	input:
 		TARfasta='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.fa'
 	output:
-		'{DATADIR}/{sample}/TAR/blastResults.txt'
+		'{DATADIR}/{sample}/TAR/TAR_blastResults.txt'
 	threads: CORES
 	params:
 		blastDB=config['BLASTDB']
@@ -326,13 +308,13 @@ rule ruleBlast:
 # label uTARs based on best blast results
 rule labelDiffuTARs:
 	input:
-		diffFeatures='{DATADIR}/{sample}/TAR/TAR_diffuTARFeatures.txt',
-		blastResult='{DATADIR}/{sample}/TAR/blastResults.txt'
+		DIFF_FEAT='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features.txt',
+		BLAST_RESULT='{DATADIR}/{sample}/TAR/TAR_blastResults.txt'
 	output:
-		uTARSummary='{DATADIR}/{sample}/TAR/TAR_diffuTARFeaturesLabeled.txt'
+		uTARSummary='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features_Labeled.txt'
 	shell:
 		"""
-		Rscript scripts/examineBlastResults.R {input.diffFeatures} {input.blastResult}
+		Rscript scripts/examineBlastResults.R {input.DIFF_FEAT} {input.BLAST_RESULT}
 		"""
 
 rule getMatsSteps:

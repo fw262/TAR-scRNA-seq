@@ -20,12 +20,16 @@ Run the following command in your command line.
 conda install -c bioconda dropseq_tools
 ```
 ### 3. [Picard Tools, version 2.18.29-0 or greater](https://broadinstitute.github.io/picard/)
-
+```
+conda install -c bioconda picard
+```
 ### 4. [STAR Aligner](https://github.com/alexdobin/STAR/releases)
-
+```
+conda install -c bioconda star
+```
 ### 5. [R, version 3.6 or greater](https://www.r-project.org/)
 
-Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline. 
+Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline.
 - [BiocManager](https://cran.r-project.org/web/packages/BiocManager/vignettes/BiocManager.html)
 - [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
 - [groHMM](https://www.bioconductor.org/packages/release/bioc/html/groHMM.html)
@@ -100,7 +104,7 @@ To generate expression matrices (gene, stranded and unstranded TAR), please run 
 snakemake -R --until getMats -j [# cores]
 ```
 
-The generation of genome indices using STAR will take considerable time. Assuming the genome indices are available, the test dataset should take less than 15 minutes to generate expression matrices with 12 cores and 16GB of RAM. 
+The generation of genome indices using STAR will take considerable time. Assuming the genome indices are available, the test dataset should take less than 15 minutes to generate expression matrices with 12 cores and 16GB of RAM.
 
 To test the labeling of differentially expressed uTARs through scRNA-seq and BLASTn analysis (after issuing the command above), please move the expression matrices in the **testData_small** folder to the corresponding results folder with the following commands:
 ```
@@ -113,7 +117,7 @@ To run the full pipeline including generating a list of labeled differentially e
 snakemake -j [# cores]
 ```
 
-Assuming the expression matrices are available, the test dataset should take less than 30 minutes to generate a list of labeled uTARs with 12 cores and 16GB of RAM. 
+Assuming the expression matrices are available, the test dataset should take less than 30 minutes to generate a list of labeled uTARs with 12 cores and 16GB of RAM.
 
 
 ## Generating TAR annotations for full length Smart-seq2 (SS2) data
@@ -142,7 +146,7 @@ TAR features, listed in the refFlat and expression matrix files, are named based
 
 ## Data Availability
 
-The following publicly available datasets are used in the manuscript. 
+The following publicly available datasets are used in the manuscript.
 
 - [Human PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k?)
 - [Mouse Atlas](https://tabula-muris.ds.czbiohub.org/), [GSE109774](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE109774)
@@ -153,8 +157,8 @@ The following publicly available datasets are used in the manuscript.
 
 ## Frequently Asked Questions (FAQs)
 
-### 1. Error in rule calcHMMrefFlat stating "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : no lines available in input". 
-  
+### 1. Error in rule calcHMMrefFlat stating "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : no lines available in input".
+
 Please refer to the "SingleCellHMM_Run_combined_bam_HMM_features.log" created in the same directory as your Snakefile. You will likely see the following error:
 ```
 cannot read: chr*_HMM.bed: No such file or directory

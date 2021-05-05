@@ -143,7 +143,7 @@ findFHWM <- function(input) {
   x <- 1:length(input)
   y <- input
   xmax <- x[y == max(y)]
-  
+
   if (max(y) > 100) {
     x1 <-
       rev(x[x < xmax])[which.min(rev(round(abs(y[x < xmax] - max(
@@ -155,14 +155,14 @@ findFHWM <- function(input) {
         y
       ) / 2))))]
   }
-  
+
   x2 <- x[x > xmax][which.min((round(abs(y[x > xmax] - max(
     y
   ) / 2))))]
-  
+
   #x1 <- rev(x[x < xmax])[(which(diff(sign(diff(abs(rev(y[x < xmax]-max(y)/2))*-1)))==-2)+1)[1]]
   #x2 <- x[x > xmax][(which(diff(sign(diff(abs((y[x > xmax]-max(y)/2))*-1)))==-2)+1)[1]]
-  
+
   if (length(x1) == 0) {
     return(c(0, x2))
   } else if (length(x2) == 0) {
@@ -217,9 +217,9 @@ write.table(
 
 if (dirname(inputDiffFeaturesFile) != ".") {
   sampleName <- tail(unlist(strsplit(dirname(inputDiffFeaturesFile), "/")), n = 1)
-  output <- paste0(dirname(inputDiffFeaturesFile), "/", "TAR_diffuTARFeatures.txt")
+  output <- paste0(dirname(inputDiffFeaturesFile), "/", "TAR_diff_uTAR_Features.txt")
 } else {
-  output <- paste0("diffuTARFeatures.txt")
+  output <- paste0("TAR_diff_uTAR_Features.txt")
 }
 write.table(
   uTARFeatures,
