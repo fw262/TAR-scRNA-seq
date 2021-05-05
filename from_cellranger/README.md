@@ -13,12 +13,14 @@ This workflow requires the following packages listed below. Please ensure that t
 
 ### 2. [Drop-seq Computational Tools v2.3.0](https://github.com/broadinstitute/Drop-seq/releases)
 
-If using conda, run the following command in your command line.
+Run the following command in your command line.
 ```
 conda install -c bioconda dropseq_tools
 ```
 ### 3. [Picard Tools, version 2.18.29-0 or greater](https://broadinstitute.github.io/picard/)
-
+```
+conda install -c bioconda picard
+```
 ### 4. [R, version 3.6 or greater](https://www.r-project.org/)
 
 Please also ensure that you have downloaded the following R packages. They will be used throughout the pipeline.
@@ -33,13 +35,15 @@ Please also ensure that you have downloaded the following R packages. They will 
 ### 5. [Samtools](http://www.htslib.org/)
 
 ### 6. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
-
 This tool is used to convert gtf annotation files to refFlat format.
-
+```
+conda install -c bioconda ucsc-gtftogenepred
+```
 ### 7. [Bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
-
 Please make sure this tool is available in your working environment.
-
+```
+conda install -c bioconda bedtools
+```
 ### 8. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 **Please also download the nt database.**

@@ -14,7 +14,6 @@ This workflow requires the following packages listed below. Please ensure that t
 ### 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
 ### 2. [Drop-seq Computational Tools v2.3.0](https://github.com/broadinstitute/Drop-seq/releases)
-
 Run the following command in your command line.
 ```
 conda install -c bioconda dropseq_tools
@@ -39,15 +38,20 @@ Please also ensure that you have downloaded the following R packages. They will 
 - [stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
 ### 6. [Samtools](http://www.htslib.org/)
-
+```
+conda install -c bioconda samtools
+```
 ### 7. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
-
 This tool is used to convert gtf annotation files to refFlat format.
-
+```
+conda install -c bioconda ucsc-gtftogenepred
+```
 ### 8. [Bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 Please make sure this tool is available in your working environment.
-
+```
+conda install -c bioconda bedtools
+```
 ### 9. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 **Please also download the nt database.**
