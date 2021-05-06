@@ -1,9 +1,9 @@
 # TAR-scRNA-seq
 Author: Michael Wang (fw262@cornell.edu)
 
-### Publication in Nature Comminucations [link](https://www.nature.com/articles/s41467-021-22496-3)
+Please cite the following paper when using this tool:
 
-### bioRxiv preprint [link](https://www.biorxiv.org/content/10.1101/2020.07.31.229575v1).
+[Wang, Michael FZ, et al. "Uncovering transcriptional dark matter via gene annotation independent single-cell RNA sequencing analysis." _Nature Communications_ 12.1 (2021): 1-10.](https://www.nature.com/articles/s41467-021-22496-3)
 
 ## Abstract
 Conventional scRNA-seq expression analyses rely on the availability of a high quality genome annotation. Yet, as we show here with scRNA-seq experiments and analyses spanning human, mouse, chicken, mole rat, lemur and sea urchin, genome annotations are often incomplete, in particular for organisms that are not routinely studied. To overcome this hurdle, we created a scRNA-seq analysis routine that recovers biologically relevant transcriptional activity beyond the scope of the best available genome annotation by performing scRNA-seq analysis on any region in the genome for which transcriptional products are detected. Our tool generates a single-cell expression matrix for all transcriptionally active regions (TARs), performs single-cell TAR expression analysis to identify biologically significant TARs, and then annotates TARs using gene homology analysis. This procedure uses single-cell expression analyses as a filter to direct annotation efforts to biologically significant transcripts and thereby uncovers biology to which scRNA-seq would otherwise be in the dark.
