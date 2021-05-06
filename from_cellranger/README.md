@@ -33,7 +33,9 @@ Please also ensure that you have downloaded the following R packages. They will 
 - [stringr](https://cran.r-project.org/web/packages/stringr/readme/README.html)
 
 ### 5. [Samtools](http://www.htslib.org/)
-
+```
+conda install -c bioconda samtools
+```
 ### 6. [GtfToGenePred](https://bioconda.github.io/recipes/ucsc-gtftogenepred/README.html)
 This tool is used to convert gtf annotation files to refFlat format.
 ```
@@ -48,7 +50,7 @@ conda install -c bioconda bedtools
 
 **Please also download the nt database.**
 
-## Procedure #TODO- update
+## Procedure
 
 ### 1. Clone this repository.
 
@@ -74,7 +76,7 @@ Also please place each cellranger count output into the same directory ("DATADIR
 Please change the variable names in the config.yaml as required for your analysis. This includes the following changes:
 - **Samples**: cellranger count output directories
 - **CR_REF**: Path to your genomic reference, which you used to align your samples (use ```cellranger mkref``` to generate, or download from [here](https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references)).
-- **DATADIR**: Path to where the cellranger count outputs ({sample}\_cellranger_count) are stored. Also note that outputs will be stored in each cellranger_count directory, individually.
+- **DATADIR**: Path to where the cellranger count outputs (.../cellranger_count) are stored. Also note that outputs will be stored in each cellranger_count directory, individually.
 - **TMPDIR**: Directory to store temporary files.
 - **PICARD**: Path to the picard tools .jar file.
 - **DROPSEQ**: Path to the Dropseq tools folder.
@@ -101,19 +103,4 @@ All output files are stored in a directory inside of the cellranger count output
 - A list of differentially expressed uTARs and their labels based on BLASTn results in "**results_out/{sample}/{sample}\_TAR_diff_uTAR_Features_Labeled.txt**".
 - Results of the BLASTn analysis for differentially expressed uTARs in "**TAR_blastResults.txt**".
 
-### Format of TAR feature label
-
-TAR features, listed in the refFlat and expression matrix files, are named based on their position, total coverage, and whether they overlap with an existing gene annotation. Examples listed below
-
-- **chr3_40767549_40767699_+\_187_0** means that this TAR feature is located at chr3:40767549-40767699 on the positive strand with a total read coverage of 187. The "\_0" means that this is a **uTAR** feature, no overlap with an existing gene annotation.
-- **chr6_42888199_42888349_-\_983_RPS6KA2_+\_1** means that this TAR feature is located at chr6:42888199-42888349 on the negative strand with a total read coverage of 983. This feature overlaps in genomic position with the gene annotated as RPS6KA2, which is annotated on the positive strand. The "\_1" means that this is an **aTAR** feature overlapping an existing gene annotation without considering directionality.
-
-## Frequently Asked Questions (FAQs)
-
-### 1. Error in rule calcHMMrefFlat stating "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : no lines available in input".
-
-Please refer to the "SingleCellHMM_Run_combined_bam_HMM_features.log" created in the same directory as your Snakefile. You will likely see the following error:
-```
-cannot read: chr*_HMM.bed: No such file or directory
-```
-Please manually install [groHMM](https://bioconductor.org/packages/release/bioc/html/groHMM.html) and [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html) and make sure you can load these packages in R. This error indicates that the groHMM R script did not finish running to generate groHMM .bed files.
+#### See the README in the root directory of this repository for more details.

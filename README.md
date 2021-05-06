@@ -59,7 +59,6 @@ conda install -c bioconda bedtools
 ## Procedure
 
 ### 1. Clone this repository.
-
 Run the following command in your command line.
 ```
 git clone https://github.com/fw262/TAR-scRNA-seq
