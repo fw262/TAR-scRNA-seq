@@ -3,6 +3,8 @@
 # sample name, pointing to cellranger count output directory (same as the ""--id" input for cellranger count)
 Samples:
     snRNA-seq_Tibialis_cellranger_count:
+    oprescu_D5_cellranger_count:
+    muscle_d_cellranger_count:
 
 CR_REF: /workdir/dwm269/genomes/mm10_all/mm10_cellranger #DWM - directory containing cellranger count reference
 
@@ -17,7 +19,7 @@ DROPSEQ: /home/dwm269/miniconda3/envs/scTAR1.2/share/dropseq_tools-2.4.0-1
 GTFTOGENEPRED: /home/dwm269/miniconda3/envs/scTAR1.2/bin/gtfToGenePred # used to convert gtf to reFflat format, not needed if annotation is in reFflat
 BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database is stored
 
-CORES: 15 # how many cores to give for each process (snakemake automatically parallelizes process using "snakemake -j {numTotalCores}")
+CORES: 10 # how many cores to give for each process (snakemake automatically parallelizes process using "snakemake -j {numTotalCores}")
 
 MERGEBP: 500
 THRESH: 10000000

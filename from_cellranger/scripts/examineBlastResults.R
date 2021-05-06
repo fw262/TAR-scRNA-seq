@@ -7,8 +7,8 @@ if(length(args)==2){
   stop("Please specify differential markers and blast results.")
 }
 
-print("Input arguments are good")
-print("Loading required packages (data.table, dplyr, stringr).")
+message("Input arguments are good")
+message("Loading required packages (data.table, dplyr, stringr).")
 
 if (!require('data.table')){
   install.packages("data.table")
@@ -25,11 +25,11 @@ if (!require('stringr')){
 }
 library(stringr)
 
-print("Finished loaded packages (data.table, dplyr, stringr).")
+message("Finished loaded packages (data.table, dplyr, stringr).")
 
 diffMarkers <- read.delim(inputDiffMarkersFile,sep="\t")
 blastResult <- read.delim(blastResultFile, header=FALSE)
-print("Finished loading differentially expressed uTARs and fasta results.")
+message("Finished loading differentially expressed uTARs and fasta results.")
 
 addInBlastResult<-function(blastResult,gonadUTarBed){
   getNFromList <- function(lst, n){
@@ -70,7 +70,7 @@ diffMarkers$fastaPeak<-as.character(diffMarkers$fastaPeak)
 
 diffMarkers<-addInBlastResult(blastResult,diffMarkers)
 diffMarkers$blast[is.na(diffMarkers$blast)]<-"undetermined"
-print("Finished labeling based on best BLAST results.")
+message("Finished labeling based on best BLAST results.")
 
 output<-paste0(dirname(inputDiffMarkersFile),"/","TAR_diff_uTAR_Features_Labeled.txt")
 

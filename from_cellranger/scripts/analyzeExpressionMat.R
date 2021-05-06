@@ -215,14 +215,13 @@ FindDiffExprFeatures <-
       var.toal=0.95,
       reduction="pca_genes"
     )
-    print(npcs_significant)
-    print(combined.seu@reductions$pca_genes)
+
     combined.seu <- FindNeighbors(
       combined.seu,
       reduction="pca_genes",
       dims=1:npcs_significant
     )
-    print("214")
+
     combined.seu <- FindClusters(
       combined.seu,
       resolution = res_param

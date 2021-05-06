@@ -153,7 +153,7 @@ rule stage3_withDir:
 			GENE_NAME_TAG=GN\
 			GENE_STRAND_TAG=GS\
 			USE_STRAND_INFO=true\
-            MAX_RECORDS_IN_RAM=5000000\
+            MAX_RECORDS_IN_RAM=10000000\
 			CREATE_INDEX=true
         """
 

@@ -90,18 +90,16 @@ From the command line, cd into the directory ```TAR-SCRNA-seq/from_cellranger```
 
 Please ensure the Snakefile and cellranger_config.yaml files as well as the scripts folder are in the directory where you intend to run the pipeline.
 
-## Test datset -
+## Test datset
 TODO- make toy dataset
 
-## Output - TODO- update
-All output files are stored in a directory inside of the cellranger count output  ```cellranger_count/TAR/```
+## Output files
+All output files are stored in a directory inside of the cellranger count output  ```.../cellranger_count/TAR/```
 - RefFlat format of TAR features with and without consideration of directionality stored in "**TAR_reads.bed.gz.withDir.genes.refFlat**" and "**TAR_reads.bed.gz.noDir.refFlat.refFlat**".
-- Digital expression matrix for gene features is stored in "**gene_expression_matrix.txt.gz**".
-- Digital expression matrix for TAR features, without consideration of TAR directionality relative to annotated gene features, is stored in "**TAR_expression_matrix_noDir.txt.gz**".
-- Digital expression matrix for TAR features, with consideration of TAR directionality relative to annotated gene features, is stored in "**TAR_expression_matrix_withDir.txt.gz**".
+- Digital expression matrix for TAR features, with consideration of TAR directionality relative to annotated gene features, is stored in "**TAR_expression_matrix_withDir.txt.gz**". Additional rules within the **Snakefile** are provided to generate a matrix that does not consider strandedness- just uncomment them.
 - A list of differentially expressed genes and uTARs in "**results_out/{sample}/{sample}\_diffMarkers.txt**".
-- A list of differentially expressed uTARs and their labels based on BLASTn results in "**results_out/{sample}/{sample}\_diffuTARMarkersLabeled.txt**".
-- Results of the BLASTn analysis for differentially expressed uTARs in "**results_out/{sample}/{sample}\_blastResults.txt**".
+- A list of differentially expressed uTARs and their labels based on BLASTn results in "**results_out/{sample}/{sample}\_TAR_diff_uTAR_Features_Labeled.txt**".
+- Results of the BLASTn analysis for differentially expressed uTARs in "**TAR_blastResults.txt**".
 
 ### Format of TAR feature label
 

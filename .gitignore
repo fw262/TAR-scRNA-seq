@@ -1,0 +1,8 @@
+
+# Ignore temp files from snakemake
+from_cellranger/temp*
+from_fastqs/temp*
+
+# Other extraneous files...
+.snakemake
+.Rhistory
