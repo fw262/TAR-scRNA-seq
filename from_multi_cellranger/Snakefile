@@ -21,11 +21,12 @@ import pdb
 ########################################################################################################
 # Configfile
 ########################################################################################################
-configfile:'cellranger_config.yaml'
+configfile:'multi_cellranger_config.yaml'
 ########################################################################################################
 # Directories and locations
 ########################################################################################################
 DATADIR = config['DATADIR']
+MERGEDOUTDIR = config['MERGEDOUTDIR']
 TMPDIR = config['TMPDIR']
 ########################################################################################################
 # Variables and references
@@ -46,11 +47,11 @@ GTFTOGENEPRED = config['GTFTOGENEPRED']
 ########################################################################################################
 rule all:
 ############## original default call here
-	# input: expand('{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features_Labeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
-	input: expand('{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features_Labeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
+	# input: expand('{DATADIR}/{sample}/multicr_TAR/TAR_diff_uTAR_Features_Labeled.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
+	input: expand('{DATADIR}/{sample}/multicr_TAR/beds/test.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
-rule getMats:
-	input: expand('{DATADIR}/{sample}/TAR/getMats.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
+# rule getMats:
+# 	input: expand('{DATADIR}/{sample}/multicr_TAR/getMats.txt', DATADIR=config['DATADIR'], sample=config['Samples'])
 
 #####################################################################################
 # Set up before running HMM
@@ -79,14 +80,15 @@ rule convertToRefFlat:
                 rm refFlat.tmp
                 """
 
-# Make output directory for TAR results in cellranger count directory
-rule makeOutDir:
-	input: '{DATADIR}/{sample}',
-	output: directory('{DATADIR}/{sample}/TAR')
-	shell:
-		"""
-		mkdir {output}
-		"""
+# Make output directory for TAR results in cellranger count directory, for each individual sample
+# rule makeOutDirs:
+# 	input: '{DATADIR}/{sample}',
+# 	output:
+# 		SAMPLEDIR=directory('{DATADIR}/{sample}/multicr_TAR')
+# 	shell:
+# 		"""
+# 		mkdir {output.SAMPLEDIR}
+# 		"""
 
 ########################################################################################################
 # Post-alignment
@@ -98,24 +100,63 @@ rule makeOutDir:
 #	output: "combined_bam.bam"
 #	shell: """samtools view -s {downSamp} -b {input} > {output}
 
-# TODO Convert the sorted .bam files into bed files, split across each chromosome
-# rule bamToBed
+# Convert the sorted .bam files into bed files, split across each chromosome
+rule bamToChrSplitBeds:
+	input:
+		BAM='{DATADIR}/{sample}/outs/possorted_genome_bam.bam' #need absolute path
+	output:
+		BED_TEST='{DATADIR}/{sample}/multicr_TAR/beds/chr1.bed', #TODO convert to checkpoint?; temp()
+		BED_DIR=directory('{DATADIR}/{sample}/multicr_TAR/beds/')
+	params:
+		DIR='{DATADIR}/{sample}/multicr_TAR'
+	threads: 1 # not parallelized :(
+	shell:
+		"""
+		bash scripts/bamToChrSplitBeds.bash {input.BAM} {CORES} {params.DIR}
+		"""
+
 
 # TODO - rule to remove template-switch strand invasion artefacts (denoise peaks, speed up HMM slightly as well)
 # rule TScleanup
+# Standard TSO sequence
+# scafe.tool.cm.remove_strand_invader \
+# --min_edit_distance=5 \
+# --min_end_non_G_num=10 \
+# --overwrite=yes \
+# --ctss_bed_path=./data/snRNA-seq_Tibialis_cellranger_count/outs/possorted_genome_bam/bed/possorted_genome_bam.collapse.ctss.bed.gz \
+# --genome=mm10.gencode_vM25 \
+# --outputPrefix=TSO_d5 \
+# --outDir=./data/snRNA-seq_Tibialis_cellranger_count/outs/
 
 # TODO- add spurious-A peak removal
 #		Tentatively planning in using a tool from SCAFE, but might need to re-write it...
 
+
+# TODO - checkpoint - make output directory for merged HMM files
+# checkpoint makeMergedOutDir:
+# 	input: '{DATADIR}/{sample}',
+# 	output: directory(MERGEDOUTDIR)
+# 	shell:
+# 		"""
+# 		mkdir {output}
+# 		"""
+
 # TODO merge .bed files for each chromosome
 # rule mergeChromBeds
+# rule chrBedMerge:
+# 	input: MERGEDOUTDIR
+# 	output:
+# 	shell:
+# 	"""
+#
+# 	"""
 
 
 # TODO run the hmm on each chromosome, separately - as separate rules?
 # Run HMM to find TARs
 rule calcHMMbed:
 	input: '{DATADIR}/{sample}/outs/possorted_genome_bam.bam' #need absolute path
-	output: temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
+	output: temp('{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz')
 	threads: CORES
 	shell:
 		"""
@@ -125,11 +166,11 @@ rule calcHMMbed:
 #		Returns annotations with and without considering strandedness/direction
 rule calcHMMrefFlat:
 	input:
-		BEDGZ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz',
+		BEDGZ='{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz',
 		REFFLAT=CR_REF+"/genes/genes.refFlat"
 	output:
-		# NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat',
-		WITHDIR ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
+		# NODIR = '{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.noDir.genes.refFlat',
+		WITHDIR ='{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
 	shell:
 		"""
 		Rscript scripts/generate_refFlat_script_both.R {input.REFFLAT} {input.BEDGZ}
@@ -138,9 +179,9 @@ rule calcHMMrefFlat:
 # Convert stranded annotations to gtf format
 rule HMM_refFlat_to_gtf_WITHDIR:
 	input:
-		WITHDIR ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
+		WITHDIR ='{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
 	output:
-		WITHDIR ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
+		WITHDIR ='{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
 	shell:
 		"""
 		Rscript scripts/convertRefFlatToGTF.R {input.WITHDIR}
@@ -149,10 +190,10 @@ rule HMM_refFlat_to_gtf_WITHDIR:
 # Label .bam file with each HMM feature
 rule stage3_withDir:
 	input:
-		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
+		TAR_GTF = '{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.withDir.genes.refFlat.gtf'
 	output:
-		OUTBAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
-		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
+		OUTBAM=temp('{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bam'),
+		bamIndex=temp('{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bai')
 	params:
 		INBAM = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam'
 	threads: 1
@@ -173,9 +214,9 @@ rule stage3_withDir:
 # Convert non-stranded annotations to gtf format
 # rule HMM_refFlat_to_gtf_NODIR:
 # 	input:
-# 		NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
+# 		NODIR = '{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
 # 	output:
-# 		NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat.gtf'
+# 		NODIR = '{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.noDir.genes.refFlat.gtf'
 # 	shell:
 # 		"""
 # 		Rscript scripts/convertRefFlatToGTF.R {input.NODIR}
@@ -185,8 +226,8 @@ rule stage3_withDir:
 # rule stage3_noDir:
 # 	input:
 # 		MERGED = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam',
-# 		TAR_REFFLAT = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
-# 	output: temp()'{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam')
+# 		TAR_REFFLAT = '{DATADIR}/{sample}/multicr_TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
+# 	output: temp()'{DATADIR}/{sample}/multicr_TAR/TAR_tagged_noDir.bam')
 # 	threads: 1
 # 	shell:
 # 		"""
@@ -206,7 +247,7 @@ rule stage3_withDir:
 # Remove any non-ACGT characters from cell barcodes list
 # rule cleanCellsList:
 # 	input:	'{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
-# 	output: '{DATADIR}/{sample}/TAR/cellList.txt'
+# 	output: '{DATADIR}/{sample}/multicr_TAR/cellList.txt'
 # 	shell:
 # 		"""
 # 		zcat {input} | sed 's/[^ACGT]//g' >> {output}
@@ -215,9 +256,9 @@ rule stage3_withDir:
 # Get counts matrix for HMM-annotated features
 rule extract_HMM_expression_withDir:
 	input:
-		BAM = '{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'
+		BAM = '{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bam'
 	output:
-		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
+		COUNTS='{DATADIR}/{sample}/multicr_TAR/TAR_expression_matrix_withDir.txt.gz'
 	params:
 		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz',
 		TMPDIR = TMPDIR
@@ -237,9 +278,9 @@ rule extract_HMM_expression_withDir:
 # Uncomment to generate a count matrix that does not consider strandedness
 # rule extract_HMM_expression_noDir:
 # 	input:
-# 		BAM='{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam'
-# 		# BARCODES = '{DATADIR}/{sample}/TAR/cellList.txt'
-# 	output: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_noDir.txt.gz'
+# 		BAM='{DATADIR}/{sample}/multicr_TAR/TAR_tagged_noDir.bam'
+# 		# BARCODES = '{DATADIR}/{sample}/multicr_TAR/cellList.txt'
+# 	output: '{DATADIR}/{sample}/multicr_TAR/TAR_expression_matrix_noDir.txt.gz'
 # 	params:
 # 		sample = '{sample}',
 # 		DATADIR = '{DATADIR}',
@@ -249,7 +290,7 @@ rule extract_HMM_expression_withDir:
 # 		{DROPSEQ}/DigitalExpression\
 # 			I={input.BAM}\
 # 			O={output}\
-# 			SUMMARY={params.DATADIR}/{params.sample}/TAR/TAR_noDir_dge.summary.txt \
+# 			SUMMARY={params.DATADIR}/{params.sample}/multicr_TAR/TAR_noDir_dge.summary.txt \
 # 			CELL_BARCODE_TAG=CB\
 # 			CELL_BC_FILE={params.BARCODES}
 # 		"""
@@ -261,13 +302,13 @@ rule extract_HMM_expression_withDir:
 # generate differentially expressed genes and uTARs
 rule getDiffFeatures:
 	input:
-		hmmFile='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
+		hmmFile='{DATADIR}/{sample}/multicr_TAR/TAR_expression_matrix_withDir.txt.gz'
 	output:
-		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
-		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
-		MTX_BC='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
-		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
-		MTX_MTX='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/matrix.mtx.gz'
+		diffFeatures='{DATADIR}/{sample}/multicr_TAR/diff_Expressed_Features.txt',
+		MTX_DIR=directory('{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix'),
+		MTX_BC='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
+		MTX_FEAT='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/features.tsv.gz',
+		MTX_MTX='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/matrix.mtx.gz'
 	params:
 		geneFile='{DATADIR}/{sample}/outs/filtered_feature_bc_matrix'
 	shell:
@@ -278,12 +319,12 @@ rule getDiffFeatures:
 # from diff uTARs, extract fasta region to blast
 rule getDiffRegionsToBlast:
 	input:
-		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
-		bamFile='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
-		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'
+		diffFeatures='{DATADIR}/{sample}/multicr_TAR/diff_Expressed_Features.txt',
+		bamFile='{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bam',
+		bamIndex='{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bai'
 	output:
-		fastaRegions='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.txt',
-		uTARDiffFeatures='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features.txt'
+		fastaRegions='{DATADIR}/{sample}/multicr_TAR/TAR_seqsToBlast.txt',
+		uTARDiffFeatures='{DATADIR}/{sample}/multicr_TAR/TAR_diff_uTAR_Features.txt'
 	shell:
 		"""
 		Rscript scripts/getFastasForBlast.R {input.diffFeatures} {input.bamFile}
@@ -292,9 +333,9 @@ rule getDiffRegionsToBlast:
 # extract diff uTAR fastas
 rule getDiffSeqsToBlastFa:
 	input:
-		fastaRegions='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.txt'
+		fastaRegions='{DATADIR}/{sample}/multicr_TAR/TAR_seqsToBlast.txt'
 	output:
-		TARfasta='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.fa'
+		TARfasta='{DATADIR}/{sample}/multicr_TAR/TAR_seqsToBlast.fa'
 	params:
 		fastaFile=CR_REF+'/fasta/genome.fa',
 		fastaIndex=CR_REF+'/fasta/genome.fa'+'.dict'
@@ -306,9 +347,9 @@ rule getDiffSeqsToBlastFa:
 # run blast on fastas
 rule ruleBlast:
 	input:
-		TARfasta='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.fa'
+		TARfasta='{DATADIR}/{sample}/multicr_TAR/TAR_seqsToBlast.fa'
 	output:
-		'{DATADIR}/{sample}/TAR/TAR_blastResults.txt'
+		'{DATADIR}/{sample}/multicr_TAR/TAR_blastResults.txt'
 	threads: CORES
 	params:
 		blastDB=config['BLASTDB']
@@ -320,10 +361,10 @@ rule ruleBlast:
 # label uTARs based on best blast results
 rule labelDiffuTARs:
 	input:
-		DIFF_FEAT='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features.txt',
-		BLAST_RESULT='{DATADIR}/{sample}/TAR/TAR_blastResults.txt'
+		DIFF_FEAT='{DATADIR}/{sample}/multicr_TAR/TAR_diff_uTAR_Features.txt',
+		BLAST_RESULT='{DATADIR}/{sample}/multicr_TAR/TAR_blastResults.txt'
 	output:
-		uTARSummary='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features_Labeled.txt'
+		uTARSummary='{DATADIR}/{sample}/multicr_TAR/TAR_diff_uTAR_Features_Labeled.txt'
 	shell:
 		"""
 		Rscript scripts/examineBlastResults.R {input.DIFF_FEAT} {input.BLAST_RESULT}
@@ -331,14 +372,14 @@ rule labelDiffuTARs:
 
 rule getMatsSteps:
 	input:
-		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz',
-		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
-		MTX_BC='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
-		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
-		MTX_MTX='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/matrix.mtx.gz',
+		COUNTS='{DATADIR}/{sample}/multicr_TAR/TAR_expression_matrix_withDir.txt.gz',
+		MTX_DIR=directory('{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix'),
+		MTX_BC='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/barcodes.tsv.gz',
+		MTX_FEAT='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/features.tsv.gz',
+		MTX_MTX='{DATADIR}/{sample}/multicr_TAR/TAR_feature_bc_matrix/matrix.mtx.gz',
 		# hmm2='{path}/{sample}_TAR_expression_matrix_noDir.txt.gz',
-		bamFile='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
-		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'
-	output: '{DATADIR}/{sample}/TAR/getMats.txt'
+		bamFile='{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bam',
+		bamIndex='{DATADIR}/{sample}/multicr_TAR/TAR_tagged_withDir.bai'
+	output: '{DATADIR}/{sample}/multicr_TAR/getMats.txt'
 	shell:
 		"""echo "Expression matrices ready" > {output}"""

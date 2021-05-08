@@ -36,16 +36,17 @@ echo "thresholded at 1 in $THRESH reads"
 echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
 echo "To avoid that, split reads into small blocks before input to groHMM"
-echo "Spliting and sorting reads..."
-bedtools bamtobed -i ${INPUT_BAM} -split |LC_ALL=C sort -k1,1V -k2,2n --parallel=30| awk '{print $0}' | gzip > ${TMPDIR}/${PREFIX}_split.sorted.bed.gz
 
-cd ${TMPDIR}
-zcat ${PREFIX}_split.sorted.bed.gz  |awk '{print $0 >> "chr"$1".bed"}'
-find -name "chr*.bed" -size -1024k -delete
+# echo "Spliting and sorting reads..."
+# bedtools bamtobed -i ${INPUT_BAM} -split |LC_ALL=C sort -k1,1V -k2,2n --parallel=30| awk '{print $0}' | gzip > ${TMPDIR}/${PREFIX}_split.sorted.bed.gz
+
+# cd ${TMPDIR}
+# zcat ${PREFIX}_split.sorted.bed.gz | awk '{print $0 >> "chr"$1".bed"}'
+# find -name "chr*.bed" -size -1024k -delete
 #wc chr*.bed -l > chr_read_count.txt
+
 echo ""
 echo "Start to run groHMM on each individual chromosome..."
-
 
 wait_a_second() {
 	joblist=($(jobs -p))
