@@ -12,7 +12,7 @@ checkIfExistGene_noDir<-function(input,gene_ref){
   rinqstartMatch<-(startPos<(gene_ref$start))
   rinqendMatch<-(endPos>(gene_ref$end))
   rinqoutGeneAll<-(chrMatch_gene*rinqstartMatch*rinqendMatch) # ref completely inside query
-  
+
   # also check partial overlap from beginning
   partialStart<-(chrMatch_gene*rinqstartMatch*qinrendMatch)
   partialEnd<-(chrMatch_gene*qinrstartMatch*rinqendMatch)
@@ -56,14 +56,14 @@ checkIfExistGene2<-function(input,gene_ref){
     g3<-as.character(gene_ref$gene[as.logical(partialStart)])
     g4<-as.character(gene_ref$gene[as.logical(partialEnd)])
     gAll<-unique(c(g1,g2,g3,g4))
-    
+
     # d's are for directions
     d1<-as.character(gene_ref$direction[as.logical(qinroutGeneAll_gene)])
     d2<-as.character(gene_ref$direction[as.logical(rinqoutGeneAll)])
     d3<-as.character(gene_ref$direction[as.logical(partialStart)])
     d4<-as.character(gene_ref$direction[as.logical(partialEnd)])
     dAll<-unique(c(d1,d2,d3,d4))
-    
+
     return(paste(c(gAll,dAll,"1"),collapse="_"))
   }else{
     #return(paste(c(direction,"0"),collapse="_"))
@@ -78,11 +78,6 @@ args=(commandArgs(TRUE))
 inputRefFlat<-args[1]
 HMMbedFile<-args[2]
 
-#inputRefFlat<-"/workdir/References/Chick/GRCg6a/refFlat_ensembl.refFlat.filled.refFlat"
-#HMMbedFile<-"/workdir/fw262/ShaoPei/chickenAll/all_Aligned_sorted_2_2019-07-01_11-29-22_MERGE500_MINREAD5/all_Aligned_sorted_2_merge500_5reads.bed"
-
-#inputRefFlat<-"/workdir/fw262/references/equCab2_ucsc.refFlat"
-#HMMbedFile<-"/workdir/fw262/ShaoPei/horseData/results_horse/8822_7858_62538_HGJT3BGX3_H2-Mock_TTCTGCCT/8822_7858_62538_HGJT3BGX3_H2-Mock_TTCTGCCT_Aligned_sorted_2_merge500_5reads.bed"
 refName<-unlist(strsplit(inputRefFlat,"/"))[length(unlist(strsplit(inputRefFlat,"/")))]
 # read in hg_38 ref genes
 gene_ref <- read.delim(inputRefFlat, header=F, comment.char="#")
@@ -105,20 +100,17 @@ HMManno_bare$direction<-as.character(HMManno_bare$direction)
 HMManno_bare$start<-as.numeric(HMManno_bare$start)
 HMManno_bare$end<-as.numeric(HMManno_bare$end)
 
-outFile=paste0(input,".noDir.",refName)
+outFile=paste0(input,".noDir.","refFlat")#,refName)
 
 ########################################################
-#source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
 
 df<-HMManno_bare
-#HMManno_bare_sample<-df[sample(nrow(df),10),]
-#HMManno$inAnno<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExist,exon_ref=gene_gtf_bare,gene_ref=gene_ref_bare)
 
 if(!require("parallel")){
 	install.packages("parallel")
 }
-
 library(parallel)
+
 num_cores<-detectCores()
 num_coresUse<-floor(num_cores/5)
 clust<-makeCluster(num_coresUse)
@@ -152,10 +144,9 @@ write.table(HMMannoReady,outFile,sep="\t",row.names=F,col.names = F, quote=F)
 ###################################################################################
 #### include direction below
 ###################################################################################
-outFile=paste0(input,".withDir.",refName)
+outFile=paste0(input,".withDir.","refFlat")#,refName)
 
 ########################################################
-#source("/workdir/fw262/ShaoPei/generate_refFlat_func.R")
 
 df<-HMManno_bare
 #HMManno_bare_sample<-df[sample(nrow(df),10),]
@@ -168,7 +159,6 @@ num_coresUse<-floor(num_cores/5)
 clust<-makeCluster(num_coresUse)
 HMManno$inGene<-parApply(cl = clust,X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene2,gene_ref=gene_ref_bare)
 stopCluster(clust)
-
 
 
 ########################### uncomment below to make refFlat file

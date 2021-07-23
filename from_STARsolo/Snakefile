@@ -1,5 +1,5 @@
 #########################################################################
-#    uTAR Snakemake pipeline - **starting from cellranger count output**
+#    uTAR Snakemake pipeline - **starting from STARsolo output**
 #    Copyright (C) 2020 Michael Wang
 #		(modified by David McKellar)
 #
@@ -21,7 +21,7 @@ import pdb
 ########################################################################################################
 # Configfile
 ########################################################################################################
-configfile:'cellranger_config.yaml'
+configfile:'STARsolo_config.yaml'
 ########################################################################################################
 # Directories and locations
 ########################################################################################################
@@ -30,7 +30,8 @@ TMPDIR = config['TMPDIR']
 ########################################################################################################
 # Variables and references
 ########################################################################################################
-CR_REF = config['CR_REF']
+GENOME_FASTA = config['GENOME_FASTA']
+GENES_GTF = config['GENES_GTF']
 MERGEBP=str(config['MERGEBP'])
 THRESH=str(config['THRESH'])
 CORES = config['CORES']
@@ -57,8 +58,8 @@ rule getMats:
 
 # create sequence dictionary using picard tools - only need to run once, saves into your cellranger reference
 rule createGenomeDict:
-        input: CR_REF+'/fasta/genome.fa'
-        output: CR_REF+'/fasta/genome.fa'+'.dict'
+        input: GENOME_FASTA
+        output: GENOME_FASTA+'.dict'
         shell:
                 """
                 java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
@@ -69,8 +70,8 @@ rule createGenomeDict:
 # convert GTF to REFFlat, save in your cellranger reference
 # 	not run if REFFlat file exists -  will only need to run this once for each reference genome
 rule convertToRefFlat:
-        input:  "{CR_REF}/genes/genes.gtf"
-        output: "{CR_REF}/genes/genes.refFlat"
+        input:  GENES_GTF
+        output: GENES_GTF+".refFlat"
         shell:
               	"""
                 {GTFTOGENEPRED} -genePredExt -geneNameAsName2 {input} refFlat.tmp
@@ -78,7 +79,8 @@ rule convertToRefFlat:
                 rm refFlat.tmp
                 """
 
-# Make output directory for TAR results in cellranger count directory
+# Make output directory for TAR results in STARsolo directory
+#@done
 rule makeOutDir:
 	input: '{DATADIR}/{sample}',
 	output: directory('{DATADIR}/{sample}/TAR')
@@ -102,7 +104,7 @@ rule makeOutDir:
 
 # Run HMM
 rule calcHMMbed:
-	input: '{DATADIR}/{sample}/outs/possorted_genome_bam.bam' #need absolute path
+	input: '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam' #need absolute path
 	output: temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
 	threads: CORES
 	shell:
@@ -114,7 +116,7 @@ rule calcHMMbed:
 rule calcHMMrefFlat:
 	input:
 		BEDGZ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz',
-		REFFLAT=CR_REF+"/genes/genes.refFlat"
+		REFFLAT=GENES_GTF+".refFlat"
 	output:
 		# NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat',
 		WITHDIR ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.genes.refFlat'
@@ -284,8 +286,8 @@ rule getDiffSeqsToBlastFa:
 	output:
 		TARfasta='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.fa'
 	params:
-		fastaFile=CR_REF+'/fasta/genome.fa',
-		fastaIndex=CR_REF+'/fasta/genome.fa'+'.dict'
+		fastaFile=GENOME_FASTA,
+		fastaIndex=GENOME_FASTA+'.dict'
 	shell:
 		"""
 		samtools faidx -r {input.fastaRegions} {params.fastaFile} > {output}

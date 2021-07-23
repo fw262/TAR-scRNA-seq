@@ -1,16 +1,21 @@
-## Configuration for the from_cellranger Snakemake workflow.
+## Configuration for the from_STARsolo Snakemake workflow.
 
-# sample name, pointing to cellranger count output directory (same as the ""--id" input for cellranger count)
+# sample name, pointing to STARsolo output directory (same as the ""--outFileNamePrefix" input for STAR)
 Samples:
-    C2Cnuc_yPAP1:
-    C2Cnuc_ctrl1:
-    SKMA:
-    SRMB:
+    SkMA_STARsolo:
+    SkMB_STARsolo:
+    # C2Cnuc_yPAP1:
+    # C2Cnuc_ctrl1:
 
-CR_REF: /workdir/dwm269/genomes/mm39_all/GRCm39_cellranger_GENCODE_M27 #DWM - directory containing cellranger count reference
+# .fasta (genome sequence) and .gtf (gene annotations) files used to build STAR reference
+GENOME_FASTA: /workdir/dwm269/genomes/mm39_all/GENCODE_M27/GRCm39.genome.fa
+GENES_GTF: /workdir/dwm269/genomes/mm39_all/GENCODE_M27/gencode.vM27.chr_patch_hapl_scaff.annotation.gtf
 
-DATADIR: /workdir/dwm269/totalRNA/data/cr_count/GRCm39_GENOCODEM27 # directory where cellranger_count outputs are stored - be sure to use an absolute path (starting with root)
-TMPDIR: ./tmp # directory for temporary files
+# directory where STARsolo outputs are stored - be sure to use an absolute path (starting with root)
+DATADIR: /workdir/dwm269/totalRNA/data/STARsolo/GRCm39_GENCODEM27
+
+# directory for temporary files
+TMPDIR: ./tmp
 
 ########################################################################################################
 # Executables - file paths

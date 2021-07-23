@@ -5,6 +5,8 @@ Authors: Michael Wang (fw262@cornell.edu) & David McKellar (dwm269@cornell.edu)
 This workflow for TAR-scRNA-seq was written for datasets which have already been aligned with [STARsolo](https://github.com/alexdobin/STAR/blob/master/docs/STARsolo.md). All output files are saved into the output directory (```sampleID_STARsolo/TAR```). See the main README file or the manuscript for details on this analysis.
 
 #TODO- check software requirements for STARsolo
+- Add STAR back? (STARsolo is STAR>=v2.8)
+
 ## Required Software
 This workflow requires the following packages listed below. Please ensure that tool can be called from the command line (i.e. the paths to each tool is in your path variable). We recommend using [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to organize your packages. We also included a .yml (```scTAR_cellranger.yml```) file which can be used to initialize a conda environment with all of the required dependencies.
 
@@ -51,14 +53,17 @@ conda install -c bioconda bedtools
 
 ## Procedure
 
-### 1. Clone this repository.
+### 1. Align samples with STARsolo.
+- TODO: add required flags (sorted BAM, etc)
+
+### 2. Clone this repository.
 
 Run the following command in your command line.
 ```
 git clone https://github.com/fw262/TAR-scRNA-seq
 ```
 
-### 2. Download required software listed above.
+### 3. Download required software listed above.
 
 Please ensure to include all required software before starting. If using conda, you can create a new environment with the included ```scTAR_cellranger.yml``` file. Be sure to change the path in the last line of the .yml file so that it points to your miniconda3 installation. Install everything using the following command:
 ```
