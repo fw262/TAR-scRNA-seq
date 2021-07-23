@@ -1,3 +1,5 @@
+
+
 checkIfExistGene_noDir<-function(input,gene_ref){
   chrom<-input[[1]]
   startPos<-as.numeric(input[[2]])
@@ -89,7 +91,6 @@ gene_ref_bare$direction<-as.character(gene_ref_bare$direction)
 gene_ref_bare$start<-as.numeric(gene_ref_bare$start)
 gene_ref_bare$end<-as.numeric(gene_ref_bare$end)
 
-
 # read in Shao-Pei's file # 500 bp blocks merge, at least 5 reads
 input<-HMMbedFile
 HMManno <- read.delim(input, header=FALSE)
@@ -119,8 +120,6 @@ stopCluster(clust)
 
 #HMManno$inGene<-apply(X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene_noDir,gene_ref=gene_ref_bare)
 
-
-########################### uncomment below to make refFlat file
 # make dataframe into refFlat file format
 HMManno$geneName<-paste(HMManno$V1,"_",HMManno$V2,"_",HMManno$V3,"_",HMManno$V6,"_",HMManno$V7,"_",HMManno$inGene,sep="")
 #HMManno$name<-HMManno$geneName
@@ -135,18 +134,15 @@ HMManno$exonCount<-1
 HMManno$exonStarts<-HMManno$V2
 HMManno$exonEnds<-HMManno$V3
 
-
 HMMannoReady<-HMManno[,c("geneName","name","chrom","strand","txStart","txEnd","cdsStart","cdsEnd","exonCount","exonStarts","exonEnds")]
 
 # export as GTF
 write.table(HMMannoReady,outFile,sep="\t",row.names=F,col.names = F, quote=F)
 
 ###################################################################################
-#### include direction below
+#### include direction (strandedness) below
 ###################################################################################
 outFile=paste0(input,".withDir.","refFlat")#,refName)
-
-########################################################
 
 df<-HMManno_bare
 #HMManno_bare_sample<-df[sample(nrow(df),10),]
@@ -157,11 +153,15 @@ library(parallel)
 num_cores<-detectCores()
 num_coresUse<-floor(num_cores/5)
 clust<-makeCluster(num_coresUse)
-HMManno$inGene<-parApply(cl = clust,X=HMManno_bare,MARGIN=1,FUN=checkIfExistGene2,gene_ref=gene_ref_bare)
+HMManno$inGene<-parApply(
+  cl = clust,
+  X=HMManno_bare,
+  MARGIN=1,
+  FUN=checkIfExistGene2,
+  gene_ref=gene_ref_bare
+)
 stopCluster(clust)
 
-
-########################### uncomment below to make refFlat file
 # make dataframe into refFlat file format
 HMManno$geneName<-paste(HMManno$V1,"_",HMManno$V2,"_",HMManno$V3,"_",HMManno$V6,"_",HMManno$V7,"_",HMManno$inGene,sep="")
 #HMManno$name<-HMManno$geneName
@@ -175,7 +175,6 @@ HMManno$cdsEnd<-HMManno$V3
 HMManno$exonCount<-1
 HMManno$exonStarts<-HMManno$V2
 HMManno$exonEnds<-HMManno$V3
-
 
 HMMannoReady<-HMManno[,c("geneName","name","chrom","strand","txStart","txEnd","cdsStart","cdsEnd","exonCount","exonStarts","exonEnds")]
 

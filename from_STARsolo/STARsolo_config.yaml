@@ -2,10 +2,10 @@
 
 # sample name, pointing to STARsolo output directory (same as the ""--outFileNamePrefix" input for STAR)
 Samples:
-    SkMA_STARsolo:
-    SkMB_STARsolo:
-    # C2Cnuc_yPAP1:
-    # C2Cnuc_ctrl1:
+    C2Cnuc_yPAP1_STARsolo:
+    C2Cnuc_ctrl1_STARsolo:
+    # SkMA_STARsolo:
+    # SkMB_STARsolo:
 
 # .fasta (genome sequence) and .gtf (gene annotations) files used to build STAR reference
 GENOME_FASTA: /workdir/dwm269/genomes/mm39_all/GENCODE_M27/GRCm39.genome.fa
