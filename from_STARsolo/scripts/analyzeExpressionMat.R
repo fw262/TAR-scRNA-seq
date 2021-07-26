@@ -120,12 +120,12 @@ FindDiffExprFeatures <-
     n.pcs = 50,
     res_param = 0.8
   ){
-    cat("Loading in expression matrix...")
+    cat("Loading in expression matrix... ")
     geneMat <- Seurat::Read10X(geneFile)
     cat("Done.\n")
 
     # load TAR matrix and combine with gene expression matrix and subset for valid cells ####
-    cat("Loading in TAR matrix...")
+    cat("Loading in TAR matrix... ")
     #TODO- clean this up...
     TARMat <- fread(
       TARFile,
@@ -139,7 +139,9 @@ FindDiffExprFeatures <-
     rownames(TARMat) <- TARMat$GENE # set the rownames as GENEs
     TARMat <- TARMat[, -1] # take out first column
     TARMat <- as.sparse(TARMat) #force to sparse to match with gene matrix
+
     cat("Done.\n")
+    cat("Loaded in ", ncol(TARMat), "cells and ", nrow(TARMat), "TARs.\n")
 
     cat("Saving TAR matrix in MTX format...")
     newMatDirName <- paste0(
@@ -183,7 +185,7 @@ FindDiffExprFeatures <-
       )
 
     # Preprocess data ####
-    cat("Preprocessing data...\n")
+    cat("Preprocessing data... \n")
     combined.seu <-
       NormalizeData(combined.seu, verbose=F) %>%
       ScaleData(features = rownames(combined.seu),verbose=F)

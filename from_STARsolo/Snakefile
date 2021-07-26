@@ -137,6 +137,7 @@ rule HMM_refFlat_to_gtf_WITHDIR:
 		"""
 
 # Label .bam file with each HMM feature
+#TODO: replace picard with sinto (faster/parrallelized .bam read tagging)
 rule stage3_withDir:
 	input:
 		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.refFlat.gtf'
@@ -144,7 +145,7 @@ rule stage3_withDir:
 		OUTBAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
 		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
 	params:
-		INBAM = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam'
+		INBAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam'
 	threads: 1
 	shell:
 		"""
@@ -174,7 +175,7 @@ rule stage3_withDir:
 # Uncomment to generate a count matrix that does not consider strandedness
 # rule stage3_noDir:
 # 	input:
-# 		MERGED = '{DATADIR}/{sample}/outs/possorted_genome_bam.bam',
+# 		MERGED = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam',
 # 		TAR_REFFLAT = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
 # 	output: temp()'{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam')
 # 	threads: 1
@@ -195,7 +196,7 @@ rule stage3_withDir:
 #TODO- Do we need this?
 # Remove any non-ACGT characters from cell barcodes list
 # rule cleanCellsList:
-# 	input:	'{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
+# 	input:	'{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz'
 # 	output: '{DATADIR}/{sample}/TAR/cellList.txt'
 # 	shell:
 # 		"""
@@ -209,7 +210,7 @@ rule extract_HMM_expression_withDir:
 	output:
 		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
 	params:
-		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz',
+		BARCODES = '{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz',
 		TMPDIR = TMPDIR
 	shell:
 		"""
@@ -233,7 +234,7 @@ rule extract_HMM_expression_withDir:
 # 	params:
 # 		sample = '{sample}',
 # 		DATADIR = '{DATADIR}',
-# 		BARCODES = '{DATADIR}/{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz'
+# 		BARCODES = '{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz'
 # 	shell:
 # 		"""
 # 		{DROPSEQ}/DigitalExpression\
@@ -259,7 +260,7 @@ rule getDiffFeatures:
 		MTX_FEAT='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/features.tsv.gz',
 		MTX_MTX='{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix/matrix.mtx.gz'
 	params:
-		geneFile='{DATADIR}/{sample}/outs/filtered_feature_bc_matrix'
+		geneFile='{DATADIR}/{sample}/Solo.out/GeneFull/filtered'
 	shell:
 		"""
 		Rscript scripts/analyzeExpressionMat.R {params.geneFile} {input.hmmFile}
