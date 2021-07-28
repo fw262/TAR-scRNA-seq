@@ -2,11 +2,12 @@
 
 INPUT_BAM=$1 #path to .bam file
 CORE=$2 # number of cores for parallelization
-#MINCOV=$3
-MERGEBP=$3
-THRESH=$4
-OUTDIR=$5 #DWM; cellranger count directory path & output directory
-PL=$6 #path to SingleCellHMM.R
+MEM=$3
+MERGEBP=$4
+THRESH=$5
+OUTDIR=$6 #DWM; cellranger count directory path & output directory
+PL=$7 #path to SingleCellHMM.R
+
 CORE="${CORE:-5}"
 #MINCOV="${MINCOV:-5}"
 MERGEBP="${MERGEBP:-500}"
@@ -26,18 +27,19 @@ mkdir ${TMPDIR}
 
 exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
 exec 2>&1
-echo "Path to SingleCellHMM.R   $PL"
-echo "INPUT_BAM                 $INPUT_BAM"
-echo "cellranger count folder   $OUTDIR"
-echo "tmp folder                $TMPDIR"
-echo "number Of thread          $CORE"
-echo "minimum coverage		      $MINCOV"
-echo "thresholded at 1 in $THRESH reads"
+echo "Path to SingleCellHMM.R   ${PL}"
+echo "INPUT_BAM                 ${INPUT_BAM}"
+echo "cellranger count folder   ${OUTDIR}"
+echo "tmp folder                ${TMPDIR}"
+echo "number of threads         ${CORE}"
+echo "memory usage              ${MEM}"
+echo "minimum coverage		      ${MINCOV}"
+echo "thresholded at 1 in ${THRESH} reads"
 echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
 echo "To avoid that, split reads into small blocks before input to groHMM"
 echo "Spliting and sorting reads..."
-bedtools bamtobed -i ${INPUT_BAM} -split |LC_ALL=C sort -k1,1V -k2,2n --parallel=30| awk '{print $0}' | gzip > ${TMPDIR}/${PREFIX}_split.sorted.bed.gz
+bedtools bamtobed -i ${INPUT_BAM} -split | LC_ALL=C sort -k1,1V -k2,2n --buffer-size=${MEM} --parallel=${CORE} | awk '{print $0}' | gzip > ${TMPDIR}/${PREFIX}_split.sorted.bed.gz
 
 cd ${TMPDIR}
 zcat ${PREFIX}_split.sorted.bed.gz  | awk '{print $0 >> "chr"$1".bed"}'

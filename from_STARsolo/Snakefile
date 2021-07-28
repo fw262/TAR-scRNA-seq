@@ -58,32 +58,38 @@ rule getMats:
 
 # create sequence dictionary using picard tools - only need to run once, saves into your cellranger reference
 rule createGenomeDict:
-        input: GENOME_FASTA
-        output: GENOME_FASTA+'.dict'
-        shell:
-                """
-                java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
-                        -R {input} \
-                        -O {output}
-                """
+	input:
+		FASTA = GENOME_FASTA
+	output:
+		DICT = GENOME_FASTA+'.dict'
+	shell:
+		"""
+		java -Dpicard.useLegacyParser=false -jar {PICARD} CreateSequenceDictionary \
+		-R {input.FASTA} \
+		-O {output.DICT}
+		"""
 
 # convert GTF to REFFlat, save in your cellranger reference
 # 	not run if REFFlat file exists -  will only need to run this once for each reference genome
 rule convertToRefFlat:
-        input:  GENES_GTF
-        output: GENES_GTF+".refFlat"
-        shell:
-              	"""
-                {GTFTOGENEPRED} -genePredExt -geneNameAsName2 {input} refFlat.tmp
-                paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output}
-                rm refFlat.tmp
-                """
+	input:
+		GENES = GENES_GTF
+	output:
+		REFFLAT = GENES_GTF+".refFlat"
+	shell:
+		"""
+		{GTFTOGENEPRED} -genePredExt -geneNameAsName2 {input.GENES} refFlat.tmp
+		paste <(cut -f 12 refFlat.tmp) <(cut -f 1-10 refFlat.tmp) > {output.REFFLAT}
+		rm refFlat.tmp
+		"""
 
 # Make output directory for TAR results in STARsolo directory
 #@done
 rule makeOutDir:
-	input: '{DATADIR}/{sample}',
-	output: directory('{DATADIR}/{sample}/TAR')
+	input:
+		'{DATADIR}/{sample}',
+	output:
+		directory('{DATADIR}/{sample}/TAR')
 	shell:
 		"""
 		mkdir {output}
@@ -104,12 +110,17 @@ rule makeOutDir:
 
 # Run HMM
 rule calcHMMbed:
-	input: '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam' #need absolute path
-	output: temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
-	threads: CORES
+	input:
+		'{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam' #need absolute path
+	output:
+		temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
+	threads:
+		CORES
+	params:
+		MEM="4G"
 	shell:
 		"""
-		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
+		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
 		"""
 # Generate annotations from HMM in refFlat format
 #		Returns annotations with and without considering strandedness/direction
