@@ -170,8 +170,11 @@ rule tagReads_withDir:
         """
 
 #TODO: replace dropseq/picard with featureCounts/umi_tools (performance improvements)
+#TODO: check tag IDs, make sure it's compatible with STAR & umi_tools; also check settings to make sure overlaps aren't weird
 # """
-# {FEATURECOUNT} -O -M -Q 30 -p -a {input.TAR_GTF} -o {output.OUT_BAM} {params.IN_BAM}
+# featureCounts -s 1 -Q 30 -f -a {input.TAR_GTF} -o TAR_assigned -R BAM {params.IN_BAM} -T {threads}
+# samtools sort -@ {threads} {output.OUT_BAM} -o {output.OUT_BAM}
+# samtools index -@ {threads} {output.OUT_BAM}
 # """
 
 # Uncomment to generate a count matrix that does not consider strandedness
@@ -238,6 +241,16 @@ rule extract_HMM_expression_withDir:
 		"""
 
 # TODO: replace with `umi_tools count`
+# """
+# umi_tools count \
+# --per-gene \
+# --gene-tag=XT \
+# --assigned-status-tag=XS \
+# --per-cell \
+# -I {input.BAM} \
+# -S {output.COUNTS}
+# """
+#counts.tsv.gz
 
 # Uncomment to generate a count matrix that does not consider strandedness
 # rule extract_HMM_expression_noDir:
