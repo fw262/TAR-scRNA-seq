@@ -13,17 +13,17 @@ message("Loading required packages (data.table, dplyr, stringr).")
 if (!require('data.table')){
   install.packages("data.table")
 }
-library(data.table)
+suppressPackageStartupMessages(library(data.table))
 
 if (!require('dplyr')){
   install.packages("dplyr")
 }
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 
 if (!require('stringr')){
   install.packages("stringr")
 }
-library(stringr)
+suppressPackageStartupMessages(library(stringr))
 
 message("Finished loaded packages (data.table, dplyr, stringr).")
 

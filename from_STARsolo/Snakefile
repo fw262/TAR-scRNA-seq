@@ -105,8 +105,7 @@ rule makeOutDir:
 #	output: "combined_bam.bam"
 #	shell: """samtools view -s {downSamp} -b {input} > {output}
 
-# TODO- add spurious-A peak removal
-#		Tentatively planning in using a tool from SCAFE, but might need to re-write part of it...
+# TODO- add spurious-A & TSO artefact removal
 
 # Run HMM
 rule calcHMMbed:
@@ -117,7 +116,7 @@ rule calcHMMbed:
 	threads:
 		CORES
 	params:
-		MEM="4G"
+		MEM="64G"
 	shell:
 		"""
 		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
@@ -148,21 +147,20 @@ rule HMM_refFlat_to_gtf_WITHDIR:
 		"""
 
 # Label .bam file with each HMM feature
-#TODO: replace picard with sinto (faster/parrallelized .bam read tagging)
-rule stage3_withDir:
+rule tagReads_withDir:
 	input:
 		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.refFlat.gtf'
 	output:
-		OUTBAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
+		OUT_BAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
 		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
 	params:
-		INBAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam'
+		IN_BAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam'
 	threads: 1
 	shell:
 		"""
         {DROPSEQ}/TagReadWithGeneFunction\
-			I={params.INBAM}\
-            O={output.OUTBAM}\
+			I={params.IN_BAM}\
+            O={output.OUT_BAM}\
             ANNOTATIONS_FILE={input.TAR_GTF}\
 			GENE_NAME_TAG=GN\
 			GENE_STRAND_TAG=GS\
@@ -170,6 +168,11 @@ rule stage3_withDir:
             MAX_RECORDS_IN_RAM=10000000\
 			CREATE_INDEX=true
         """
+
+#TODO: replace dropseq/picard with featureCounts/umi_tools (performance improvements)
+# """
+# {FEATURECOUNT} -O -M -Q 30 -p -a {input.TAR_GTF} -o {output.OUT_BAM} {params.IN_BAM}
+# """
 
 # Uncomment to generate a count matrix that does not consider strandedness
 # Convert non-stranded annotations to gtf format
@@ -184,7 +187,7 @@ rule stage3_withDir:
 # 		"""
 
 # Uncomment to generate a count matrix that does not consider strandedness
-# rule stage3_noDir:
+# rule tagReads_noDir:
 # 	input:
 # 		MERGED = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam',
 # 		TAR_REFFLAT = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
@@ -231,10 +234,10 @@ rule extract_HMM_expression_withDir:
 			TMP_DIR={params.TMPDIR}\
 			CELL_BARCODE_TAG=CB\
 			MOLECULAR_BARCODE_TAG=UB\
-			GENE_NAME_TAG=GN\
-			GENE_STRAND_TAG=GS\
 			CELL_BC_FILE={params.BARCODES}
 		"""
+
+# TODO: replace with `umi_tools count`
 
 # Uncomment to generate a count matrix that does not consider strandedness
 # rule extract_HMM_expression_noDir:

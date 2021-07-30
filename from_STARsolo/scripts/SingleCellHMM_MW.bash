@@ -15,10 +15,11 @@ THRESH="${THRESH:-10000000}"
 CURDIR=`pwd` #snakemake directory
 PL="${PL:-${CURDIR}/scripts}"
 
-reads=`samtools view -q 255 $INPUT_BAM | wc -l` #can this samtools cal be parallelized with -@ ?
-echo "Number of aligned reads is $reads"
-minCovReads=`expr $reads / ${THRESH}`
-MINCOV=$minCovReads
+#can this samtools call be parallelized with -@ ?
+reads=`samtools view -q 255 ${INPUT_BAM} | wc -l`
+echo "Number of aligned reads is ${reads}"
+minCovReads=`expr ${reads} / ${THRESH}`
+MINCOV=${minCovReads}
 
 PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev` #this is the same for all cellranger pipeline, could just directly name it here
 
@@ -28,8 +29,8 @@ mkdir ${TMPDIR}
 exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
 exec 2>&1
 echo "Path to SingleCellHMM.R   ${PL}"
-echo "INPUT_BAM                 ${INPUT_BAM}"
-echo "cellranger count folder   ${OUTDIR}"
+echo "input .bam                ${INPUT_BAM}"
+echo "STARsolo output directory ${OUTDIR}"
 echo "tmp folder                ${TMPDIR}"
 echo "number of threads         ${CORE}"
 echo "memory usage              ${MEM}"

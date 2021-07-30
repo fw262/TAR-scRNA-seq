@@ -32,32 +32,32 @@ cat("Loading required packages (Matrix, Seurat, data.table, dplyr, stringr).\n")
 if (!require('R.utils')) {
   install.packages('R.utils', repo="https://cloud.r-project.org")
 }
-suppressMessages(library(R.utils, verbose=F))
+suppressPackageStartupMessages(library(R.utils, verbose=F))
 
 # if (!require('Matrix')) {
 #   install.packages('Matrix', repo="https://cloud.r-project.org")
 # }
-suppressMessages(library(Matrix,  verbose=F))
+suppressPackageStartupMessages(library(Matrix,  verbose=F))
 
 if (!require('Seurat')) {
   install.packages('Seurat', repo="https://cloud.r-project.org")
 }
-suppressMessages(library(Seurat,  verbose=F)) # Please use Seurat >= v4.0
+suppressPackageStartupMessages(library(Seurat,  verbose=F)) # Please use Seurat >= v4.0
 
 if (!require('data.table')) {
   install.packages("data.table", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(data.table,  verbose=F))
+suppressPackageStartupMessages(library(data.table,  verbose=F))
 
 if (!require('dplyr')) {
   install.packages("dplyr", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(dplyr,  verbose=F))
+suppressPackageStartupMessages(library(dplyr,  verbose=F))
 
 if (!require('stringr')) {
   install.packages("stringr", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(stringr, verbose=F))
+suppressPackageStartupMessages(library(stringr, verbose=F))
 
 cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
 
