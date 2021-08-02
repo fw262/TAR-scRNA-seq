@@ -237,6 +237,8 @@ rule extract_HMM_expression_withDir:
 			TMP_DIR={params.TMPDIR}\
 			CELL_BARCODE_TAG=CB\
 			MOLECULAR_BARCODE_TAG=UB\
+			GENE_NAME_TAG=GN\
+			GENE_STRAND_TAG=GS\
 			CELL_BC_FILE={params.BARCODES}
 		"""
 

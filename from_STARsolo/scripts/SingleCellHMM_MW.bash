@@ -21,7 +21,8 @@ echo "Number of aligned reads is ${reads}"
 minCovReads=`expr ${reads} / ${THRESH}`
 MINCOV=${minCovReads}
 
-PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev` #this is the same for all cellranger pipeline, could just directly name it here
+# PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 | cut -d . -f 2- | rev`
+PREFIX="sTARsolo"
 
 TMPDIR=${OUTDIR}/${PREFIX}_HMM_features
 mkdir ${TMPDIR}
@@ -45,7 +46,8 @@ bedtools bamtobed -i ${INPUT_BAM} -split | LC_ALL=C sort -k1,1V -k2,2n --buffer-
 cd ${TMPDIR}
 zcat ${PREFIX}_split.sorted.bed.gz  | awk '{print $0 >> $1".bed"}'
 find -name "*.bed" -size -1024k -delete
-#wc chr*.bed -l > chr_read_count.txt
+wc chr*.bed -l > chr_read_count.txt
+
 echo ""
 echo "Start to run groHMM on each individual chromosome..."
 
@@ -59,11 +61,12 @@ wait_a_second() {
 	done
 }
 
+ls *.bed
 
-for f in chr*.bed
+for f in *.bed
 do
   wait_a_second
-  echo ${f}
+  echo "    " ${f}
   R --vanilla --slave --args $(pwd) ${f}  < ${PL}/SingleCellHMM.R  > ${f}.log 2>&1 & pids+=($!)
 done
 wait "${pids[@]}"
@@ -71,9 +74,9 @@ wait "${pids[@]}"
 
 echo ""
 echo "Merging HMM blocks within ${MERGEBP}bp..."
-for f in chr*_HMM.bed
+for f in *_HMM.bed
 do
-  LC_ALL=C sort -k1,1V -k2,2n --parallel=30 ${f} > ${f}.sorted.bed
+  LC_ALL=C sort -k1,1V -k2,2n --parallel=${CORE} ${f} > ${f}.sorted.bed
   cat ${f}.sorted.bed | grep + > ${f}_plus
   cat ${f}.sorted.bed | grep - > ${f}_minus
   bedtools merge -s -d ${MERGEBP} -i ${f}_plus > ${f}_plus_merge${MERGEBP} & pids2+=($!)
@@ -82,11 +85,12 @@ do
 done
 wait "${pids2[@]}"
 
-cat chr*_HMM.bed_plus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "+"}' > ${PREFIX}_merge${MERGEBP}
-cat chr*_HMM.bed_minus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "-"}' >> ${PREFIX}_merge${MERGEBP}
+echo "Combining HMM output from all chromosomes..."
+cat *_HMM.bed_plus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "+"}' > ${PREFIX}_merge${MERGEBP}
+cat *_HMM.bed_minus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "-"}' >> ${PREFIX}_merge${MERGEBP}
 
 mkdir toremove
-for f in chr*_HMM.bed
+for f in *_HMM.bed
 do
 	mv ${f}.sorted.bed ${f}_plus ${f}_minus ${f}_plus_merge${MERGEBP} ${f}_minus_merge${MERGEBP} toremove/.
 done
@@ -95,10 +99,10 @@ done
 echo ""
 echo "Calculating the coverage..."
 f=${PREFIX}
-LC_ALL=C sort -k1,1V -k2,2n ${f}_merge${MERGEBP} --parallel=30 > ${f}_merge${MERGEBP}.sorted.bed
-rm ${f}_merge${MERGEBP}
+LC_ALL=C sort -k1,1V -k2,2n ${f}_merge${MERGEBP} --parallel=${CORE} > ${f}_merge${MERGEBP}.sorted.bed
+# rm ${f}_merge${MERGEBP} #TODO
 
-bedtools coverage -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${PREFIX}_split.sorted.bed.gz) -s -counts -split -sorted > ${f}_merge${MERGEBP}.sorted.bed_count
+bedtools coverage -nonamecheck -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${f}_split.sorted.bed.gz) -s -counts -split -sorted > ${f}_merge${MERGEBP}.sorted.bed_count
 
 echo ""
 echo "Filtering the HMM blocks by coverage..."
@@ -126,13 +130,13 @@ cd ${TMPDIR}
 mv chr* toremove/.
 
 for f in *
-do gzip ${f} &
+do gzip --quiet ${f} &
 done
 
-cd toremove
-for f in *
-do rm ${f} &
-done
+# cd toremove
+# for f in *
+# do rm ${f} &
+# done
 
 cd ${CURDIR}
 
