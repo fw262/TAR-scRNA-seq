@@ -29,35 +29,35 @@ if (length(args) == 0) {
 cat("Input arguments are good\n")
 cat("Loading required packages (Matrix, Seurat, data.table, dplyr, stringr).\n")
 
-if (!require('R.utils')) {
+if (!require('R.utils', quietly=T)) {
   install.packages('R.utils', repo="https://cloud.r-project.org")
 }
-suppressMessages(library(R.utils, verbose=F))
+suppressPackageStartupMessages(library(R.utils, verbose=F))
 
 # if (!require('Matrix')) {
 #   install.packages('Matrix', repo="https://cloud.r-project.org")
 # }
-suppressMessages(library(Matrix,  verbose=F))
+suppressPackageStartupMessages(library(Matrix,  verbose=F))
 
-if (!require('Seurat')) {
+if (!require('Seurat', quietly=T)) {
   install.packages('Seurat', repo="https://cloud.r-project.org")
 }
-suppressMessages(library(Seurat,  verbose=F)) # Please use Seurat >= v4.0
+suppressPackageStartupMessages(library(Seurat,  verbose=F)) # Please use Seurat >= v4.0
 
-if (!require('data.table')) {
+if (!require('data.table', quietly=T)) {
   install.packages("data.table", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(data.table,  verbose=F))
+suppressPackageStartupMessages(library(data.table,  verbose=F))
 
-if (!require('dplyr')) {
+if (!require('dplyr', quietly=T)) {
   install.packages("dplyr", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(dplyr,  verbose=F))
+suppressPackageStartupMessages(library(dplyr,  verbose=F))
 
-if (!require('stringr')) {
+if (!require('stringr', quietly=T)) {
   install.packages("stringr", repo="https://cloud.r-project.org")
 }
-suppressMessages(library(stringr, verbose=F))
+suppressPackageStartupMessages(library(stringr, verbose=F))
 
 cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
 
@@ -120,12 +120,12 @@ FindDiffExprFeatures <-
     n.pcs = 50,
     res_param = 0.8
   ){
-    cat("Loading in expression matrix...")
+    cat("Loading in expression matrix... ")
     geneMat <- Seurat::Read10X(geneFile)
     cat("Done.\n")
 
     # load TAR matrix and combine with gene expression matrix and subset for valid cells ####
-    cat("Loading in TAR matrix...")
+    cat("Loading in TAR matrix... ")
     #TODO- clean this up...
     TARMat <- fread(
       TARFile,
@@ -139,7 +139,9 @@ FindDiffExprFeatures <-
     rownames(TARMat) <- TARMat$GENE # set the rownames as GENEs
     TARMat <- TARMat[, -1] # take out first column
     TARMat <- as.sparse(TARMat) #force to sparse to match with gene matrix
+
     cat("Done.\n")
+    cat("Loaded in ", ncol(TARMat), "cells and ", nrow(TARMat), "TARs.\n")
 
     cat("Saving TAR matrix in MTX format...")
     newMatDirName <- paste0(
@@ -183,7 +185,7 @@ FindDiffExprFeatures <-
       )
 
     # Preprocess data ####
-    cat("Preprocessing data...\n")
+    cat("Preprocessing data... \n")
     combined.seu <-
       NormalizeData(combined.seu, verbose=F) %>%
       ScaleData(features = rownames(combined.seu),verbose=F)

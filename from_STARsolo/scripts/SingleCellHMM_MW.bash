@@ -5,9 +5,8 @@ CORE=$2 # number of cores for parallelization
 MEM=$3
 MERGEBP=$4
 THRESH=$5
-OUTDIR=$6 #DWM; cellranger count directory path & output directory
+OUTDIR=$6 #DWM; STARsolo output directory path
 PL=$7 #path to SingleCellHMM.R
-GENOME=$8
 
 CORE="${CORE:-5}"
 #MINCOV="${MINCOV:-5}"
@@ -23,20 +22,20 @@ minCovReads=`expr ${reads} / ${THRESH}`
 MINCOV=${minCovReads}
 
 # PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 | cut -d . -f 2- | rev`
-PREFIX="sTARsolo"
+PREFIX="HMMout"
 
 TMPDIR=${OUTDIR}/${PREFIX}_HMM_features
-mkdir ${TMPDIR}
+mkdir -p ${TMPDIR}
 
 exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
 exec 2>&1
-echo "Path to SingleCellHMM.R   ${PL}"
-echo "input .bam                ${INPUT_BAM}"
-echo "STARsolo output directory ${OUTDIR}"
-echo "tmp folder                ${TMPDIR}"
-echo "number of threads         ${CORE}"
-echo "memory usage              ${MEM}"
-echo "minimum coverage		      ${MINCOV}"
+echo "Path to SingleCellHMM.R:  	${PL}"
+echo "input .bam                	${INPUT_BAM}"
+echo "STARsolo output directory: 	${OUTDIR}"
+echo "tmp folder:                	${TMPDIR}"
+echo "number of threads:         	${CORE}"
+echo "memory usage:              	${MEM}"
+echo "minimum coverage:						${MINCOV}"
 echo "thresholded at 1 in ${THRESH} reads"
 echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
@@ -101,10 +100,13 @@ f=${PREFIX}
 LC_ALL=C sort -k1,1V -k2,2n ${f}_merge${MERGEBP} --parallel=${CORE} > ${f}_merge${MERGEBP}.sorted.bed
 #-k1,1V
 # rm ${f}_merge${MERGEBP} #TODO
+# make a toy genome file for bedtools to specify sort order (chromosome lengths are all 42, not needed here)
+zcat ${f}_split.sorted.bed.gz | awk {'print $1'} | sort -k1,1V | uniq | sed s/$/'\t42'/ > tmp.genome
 
 echo ""
 echo "Calculating the coverage..."
-bedtools coverage -nonamecheck -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${f}_split.sorted.bed.gz) -s -counts -split -sorted -g ${GENOME} > ${f}_merge${MERGEBP}.sorted.bed_count
+bedtools coverage -nonamecheck -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${f}_split.sorted.bed.gz) -s -counts -split -sorted -g tmp.genome > ${f}_merge${MERGEBP}.sorted.bed_count
+rm tmp.genome
 
 echo ""
 echo "Filtering the HMM blocks by coverage..."

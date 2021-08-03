@@ -109,15 +109,14 @@ rule makeOutDir:
 
 # Run HMM
 rule calcHMMbed:
-	input:
-		'{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam' #need absolute path
+	input: #TODO: remove "_01" from bam file
+		'{DATADIR}/{sample}/Aligned.sortedByCoord.out_01.bam' #need absolute path
 	output:
 		temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
 	threads:
 		CORES
 	params:
-		MEM="64G",
-		GENOME=GENOME_FASTA
+		MEM="64G"
 	shell:
 		"""
 		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
@@ -154,8 +153,8 @@ rule tagReads_withDir:
 	output:
 		OUT_BAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
 		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
-	params:
-		IN_BAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam'
+	params: #TODO
+		IN_BAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out_01.bam'
 	threads: 1
 	shell:
 		"""
