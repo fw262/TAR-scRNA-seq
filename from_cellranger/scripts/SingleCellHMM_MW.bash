@@ -125,9 +125,7 @@ ln -s ${TMPDIR}/TAR_reads.bed.gz .
 echo ""
 echo "Move intermediate files to  ${TMPDIR}/toremove ..."
 echo ""
-echo "${TMPDIR}/toremove can be deleted if no error message in SingleCellHMM_Run log file and "
-echo "all major chromosomes are present in the final TAR_reads.bed.gz file"
-echo ""
+echo "${TMPDIR}/toremove can be deleted if no error message in SingleCellHMM_Run log file and all major chromosomes are present in the final TAR_reads.bed.gz file"
 echo ""
 
 cd ${TMPDIR}
@@ -144,5 +142,4 @@ done
 
 cd ${CURDIR}
 
-echo ""
-echo "done!"
+echo "Done!"
