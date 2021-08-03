@@ -8,7 +8,7 @@ This workflow for TAR-scRNA-seq was written for datasets which have already been
 - Add STAR back? (STARsolo is STAR>=v2.8)
 
 ## Required Software
-This workflow requires the following packages listed below. Please ensure that tool can be called from the command line (i.e. the paths to each tool is in your path variable). We recommend using [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to organize your packages. We also included a .yml (```scTAR_cellranger.yml```) file which can be used to initialize a conda environment with all of the required dependencies.
+This workflow requires the following packages listed below. Please ensure that tool can be called from the command line (i.e. the paths to each tool is in your path variable). We recommend using [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to organize your packages. We also included a .yml (```scTAR_STARsolo.yml```) file which can be used to initialize a conda environment with all of the required dependencies.
 
 ### 1. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
@@ -21,6 +21,18 @@ conda install -c bioconda dropseq_tools
 ### 3. [Picard Tools, version 2.18.29-0 or greater](https://broadinstitute.github.io/picard/)
 ```
 conda install -c bioconda picard
+```
+
+### num. [featureCounts](https://www.rdocumentation.org/packages/Rsubread/versions/1.22.2/topics/featureCounts)
+
+featureCounts is a tool in the subreads package- we use it to tag the .bam file prior to UMI counting
+
+### num. [umi_tools](https://umi-tools.readthedocs.io/en/latest/index.html)
+```
+conda install -c bioconda -c conda-forge umi_tools==1.1.2
+```
+```
+pip install umi_tools
 ```
 ### 4. [R, version 3.6 or greater](https://www.r-project.org/)
 

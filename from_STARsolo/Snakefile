@@ -116,7 +116,8 @@ rule calcHMMbed:
 	threads:
 		CORES
 	params:
-		MEM="64G"
+		MEM="64G",
+		GENOME=GENOME_FASTA
 	shell:
 		"""
 		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR

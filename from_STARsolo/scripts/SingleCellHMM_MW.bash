@@ -7,6 +7,7 @@ MERGEBP=$4
 THRESH=$5
 OUTDIR=$6 #DWM; cellranger count directory path & output directory
 PL=$7 #path to SingleCellHMM.R
+GENOME=$8
 
 CORE="${CORE:-5}"
 #MINCOV="${MINCOV:-5}"
@@ -61,8 +62,6 @@ wait_a_second() {
 	done
 }
 
-ls *.bed
-
 for f in *.bed
 do
   wait_a_second
@@ -86,7 +85,7 @@ done
 wait "${pids2[@]}"
 
 echo "Combining HMM output from all chromosomes..."
-cat *_HMM.bed_plus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "+"}' > ${PREFIX}_merge${MERGEBP}
+cat *_HMM.bed_plus_merge${MERGEBP}  | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "+"}' > ${PREFIX}_merge${MERGEBP}
 cat *_HMM.bed_minus_merge${MERGEBP} | awk 'BEGIN{OFS="\t"} {print $0, ".", ".", "-"}' >> ${PREFIX}_merge${MERGEBP}
 
 mkdir toremove
@@ -97,12 +96,15 @@ done
 
 
 echo ""
-echo "Calculating the coverage..."
+echo "Sorting combined .bed file..."
 f=${PREFIX}
 LC_ALL=C sort -k1,1V -k2,2n ${f}_merge${MERGEBP} --parallel=${CORE} > ${f}_merge${MERGEBP}.sorted.bed
+#-k1,1V
 # rm ${f}_merge${MERGEBP} #TODO
 
-bedtools coverage -nonamecheck -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${f}_split.sorted.bed.gz) -s -counts -split -sorted > ${f}_merge${MERGEBP}.sorted.bed_count
+echo ""
+echo "Calculating the coverage..."
+bedtools coverage -nonamecheck -a ${f}_merge${MERGEBP}.sorted.bed -b <(zcat ${f}_split.sorted.bed.gz) -s -counts -split -sorted -g ${GENOME} > ${f}_merge${MERGEBP}.sorted.bed_count
 
 echo ""
 echo "Filtering the HMM blocks by coverage..."
