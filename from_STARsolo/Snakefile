@@ -105,12 +105,10 @@ rule makeOutDir:
 #	output: "combined_bam.bam"
 #	shell: """samtools view -s {downSamp} -b {input} > {output}
 
-# TODO- add spurious-A & TSO artefact removal
-
 # Run HMM
 rule calcHMMbed:
-	input: #TODO: remove "_01" from bam file
-		'{DATADIR}/{sample}/Aligned.sortedByCoord.out_01.bam' #need absolute path
+	input:
+		'{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam' #need absolute path
 	output:
 		temp('{DATADIR}/{sample}/TAR/TAR_reads.bed.gz')
 	threads:
@@ -146,69 +144,68 @@ rule HMM_refFlat_to_gtf_WITHDIR:
 		Rscript scripts/convertRefFlatToGTF.R {input.WITHDIR}
 		"""
 
+########################################################################################################
+## Tagging and labeling
+##	source: https://umi-tools.readthedocs.io/en/latest/Single_cell_tutorial.html
+########################################################################################################
+
 # Label .bam file with each HMM feature
+#TODO: add featureCounts exec to config
+#TODO: add temp() wrappers to bam and bai files
 rule tagReads_withDir:
 	input:
 		TAR_GTF = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.refFlat.gtf'
 	output:
-		OUT_BAM=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'),
-		bamIndex=temp('{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai')
-	params: #TODO
-		IN_BAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out_01.bam'
-	threads: 1
+		OUT_BAM='{DATADIR}/{sample}/TAR/Aligned.sortedByCoord.out.bam.featureCounts.bam',
+		TAR_BULK_COUNTS='{DATADIR}/{sample}/TAR/pseudobulk_featureCounts.txt'
+	params:
+		IN_BAM = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam'
+	threads:
+		CORES
+	log:
+		'{DATADIR}/{sample}/TAR/pseudobulk_featureCounts.txt.summary'
 	shell:
 		"""
-        {DROPSEQ}/TagReadWithGeneFunction\
-			I={params.IN_BAM}\
-            O={output.OUT_BAM}\
-            ANNOTATIONS_FILE={input.TAR_GTF}\
-			GENE_NAME_TAG=GN\
-			GENE_STRAND_TAG=GS\
-			USE_STRAND_INFO=true\
-            MAX_RECORDS_IN_RAM=10000000\
-			CREATE_INDEX=true
-        """
-
-#TODO: replace dropseq/picard with featureCounts/umi_tools (performance improvements)
-#TODO: check tag IDs, make sure it's compatible with STAR & umi_tools; also check settings to make sure overlaps aren't weird
+		featureCounts \
+		-s 1 \
+		-f \
+		-Q 0 \
+		-M \
+		--fraction \
+		-R BAM \
+		-T {threads} \
+		-a {input.TAR_GTF} \
+		-o {output.TAR_BULK_COUNTS} \
+		{params.IN_BAM}
+		"""
+# Old tagging code...
 # """
-# featureCounts -s 1 -Q 30 -f -a {input.TAR_GTF} -o TAR_assigned -R BAM {params.IN_BAM} -T {threads}
-# samtools sort -@ {threads} {output.OUT_BAM} -o {output.OUT_BAM}
-# samtools index -@ {threads} {output.OUT_BAM}
+# {DROPSEQ}/TagReadWithGeneFunction\
+# 	I={params.IN_BAM}\
+#     O={output.OUT_BAM}\
+#     ANNOTATIONS_FILE={input.TAR_GTF}\
+# 	GENE_NAME_TAG=GN\
+# 	GENE_STRAND_TAG=GS\
+# 	USE_STRAND_INFO=true\
+#     MAX_RECORDS_IN_RAM=10000000\
+# 	CREATE_INDEX=true
 # """
 
-# Uncomment to generate a count matrix that does not consider strandedness
-# Convert non-stranded annotations to gtf format
-# rule HMM_refFlat_to_gtf_NODIR:
-# 	input:
-# 		NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
-# 	output:
-# 		NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat.gtf'
-# 	shell:
-# 		"""
-# 		Rscript scripts/convertRefFlatToGTF.R {input.NODIR}
-# 		"""
+rule sort_index_tagged_bam:
+	input:
+		IN_BAM = '{DATADIR}/{sample}/TAR/Aligned.sortedByCoord.out.bam.featureCounts.bam'
+	output:
+		OUT_BAM='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
+		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam.bai'
+	threads:
+		CORES
+	shell:
+		"""
+		samtools sort -@ {threads} {input.IN_BAM} -o {output.OUT_BAM}
+		samtools index -@ {threads} {output.OUT_BAM}
+		"""
 
-# Uncomment to generate a count matrix that does not consider strandedness
-# rule tagReads_noDir:
-# 	input:
-# 		MERGED = '{DATADIR}/{sample}/Aligned.sortedByCoord.out.bam',
-# 		TAR_REFFLAT = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.genes.refFlat'
-# 	output: temp()'{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam')
-# 	threads: 1
-# 	shell:
-# 		"""
-#         {DROPSEQ}/TagReadWithGeneFunction\
-#             O={output}\
-#             I={input.MERGED}\
-#             ANNOTATIONS_FILE={input.TAR_REFFLAT}\
-#             MAX_RECORDS_IN_RAM=10000000\
-# 			CREATE_INDEX=true
-#         """
-
-########################################################################################################
-# Extract expression for each TAR
-########################################################################################################
+#TODO: check settings to make sure overlaps aren't weird
 
 #TODO- Do we need this?
 # Remove any non-ACGT characters from cell barcodes list
@@ -225,54 +222,47 @@ rule extract_HMM_expression_withDir:
 	input:
 		BAM = '{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam'
 	output:
-		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
+		COUNTS='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.tsv.gz'
 	params:
 		BARCODES = '{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz',
 		TMPDIR = TMPDIR
+	log:
+		# '{DATADIR}/{sample}/TAR/DropSeq_DigitalExpression.log'
+		'{DATADIR}/{sample}/TAR/umitools_count.log'
 	shell:
-		"""
+		 """
 		{DROPSEQ}/DigitalExpression\
 			I={input.BAM}\
 			O={output.COUNTS}\
 			TMP_DIR={params.TMPDIR}\
 			CELL_BARCODE_TAG=CB\
 			MOLECULAR_BARCODE_TAG=UB\
-			GENE_NAME_TAG=GN\
 			GENE_STRAND_TAG=GS\
+			GENE_NAME_TAG=XS\
+			SUMMARY={log}\
 			CELL_BC_FILE={params.BARCODES}
 		"""
+		# """
+		# umi_tools count \
+		# --per-gene \
+		# --extract-umi-method=tag \
+		# --assigned-status-tag=XS \
+		# --gene-tag=XT \
+		# --cell-tag=CB \
+		# --umi-tag=UB \
+		# --per-cell \
+		# --wide-format-cell-counts \
+		# --log={log} \
+		# -I {input.BAM} \
+		# -E {log} \
+		# -S {output.COUNTS}
+		# """
 
-# TODO: replace with `umi_tools count`
-# """
-# umi_tools count \
-# --per-gene \
-# --gene-tag=XT \
-# --assigned-status-tag=XS \
-# --per-cell \
-# -I {input.BAM} \
-# -S {output.COUNTS}
-# """
-#counts.tsv.gz
+		#
 
-# Uncomment to generate a count matrix that does not consider strandedness
-# rule extract_HMM_expression_noDir:
-# 	input:
-# 		BAM='{DATADIR}/{sample}/TAR/TAR_tagged_noDir.bam'
-# 		# BARCODES = '{DATADIR}/{sample}/TAR/cellList.txt'
-# 	output: '{DATADIR}/{sample}/TAR/TAR_expression_matrix_noDir.txt.gz'
-# 	params:
-# 		sample = '{sample}',
-# 		DATADIR = '{DATADIR}',
-# 		BARCODES = '{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz'
-# 	shell:
-# 		"""
-# 		{DROPSEQ}/DigitalExpression\
-# 			I={input.BAM}\
-# 			O={output}\
-# 			SUMMARY={params.DATADIR}/{params.sample}/TAR/TAR_noDir_dge.summary.txt \
-# 			CELL_BARCODE_TAG=CB\
-# 			CELL_BC_FILE={params.BARCODES}
-# 		"""
+#TODO: check UMI barcode tag? check strandedness settings?
+
+
 
 #########################################################
 # Diff. TAR expression & BLAST
@@ -281,7 +271,7 @@ rule extract_HMM_expression_withDir:
 # generate differentially expressed genes and uTARs
 rule getDiffFeatures:
 	input:
-		hmmFile='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.txt.gz'
+		hmmFile='{DATADIR}/{sample}/TAR/TAR_expression_matrix_withDir.tsv.gz'
 	output:
 		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
 		MTX_DIR=directory('{DATADIR}/{sample}/TAR/TAR_feature_bc_matrix'),
@@ -300,7 +290,7 @@ rule getDiffRegionsToBlast:
 	input:
 		diffFeatures='{DATADIR}/{sample}/TAR/diff_Expressed_Features.txt',
 		bamFile='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam',
-		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bai'
+		bamIndex='{DATADIR}/{sample}/TAR/TAR_tagged_withDir.bam.bai'
 	output:
 		fastaRegions='{DATADIR}/{sample}/TAR/TAR_seqsToBlast.txt',
 		uTARDiffFeatures='{DATADIR}/{sample}/TAR/TAR_diff_uTAR_Features.txt'

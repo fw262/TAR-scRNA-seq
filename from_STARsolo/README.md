@@ -1,11 +1,11 @@
 # TAR-scRNA-seq (*from_STARsolo*)
 Authors: Michael Wang (fw262@cornell.edu) & David McKellar (dwm269@cornell.edu)
 
+#TODO:
+- 
+
 ## Outline
 This workflow for TAR-scRNA-seq was written for datasets which have already been aligned with [STARsolo](https://github.com/alexdobin/STAR/blob/master/docs/STARsolo.md). All output files are saved into the output directory (```sampleID_STARsolo/TAR```). See the main README file or the manuscript for details on this analysis.
-
-#TODO- check software requirements for STARsolo
-- Add STAR back? (STARsolo is STAR>=v2.8)
 
 ## Required Software
 This workflow requires the following packages listed below. Please ensure that tool can be called from the command line (i.e. the paths to each tool is in your path variable). We recommend using [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to organize your packages. We also included a .yml (```scTAR_STARsolo.yml```) file which can be used to initialize a conda environment with all of the required dependencies.
