@@ -24,7 +24,7 @@ PREFIX=`echo ${INPUT_BAM} | rev | cut -d / -f 1 |cut -d . -f 2- |rev` #this is t
 TMPDIR=${OUTDIR}/${PREFIX}_HMM_features
 mkdir ${TMPDIR}
 
-exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
+exec > >(tee ${TMPDIR}/SingleCellHMM_Run.log)
 exec 2>&1
 echo "Path to SingleCellHMM.R   $PL"
 echo "INPUT_BAM                 $INPUT_BAM"
