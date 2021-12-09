@@ -108,6 +108,7 @@ cat("Finished loading packages (Seurat, data.table, dplyr, stringr).\n")
   return(n.pcs)
 }
 
+# Find differentially expressed features
 FindDiffExprFeatures <-
   function(
     geneFile,
@@ -145,7 +146,7 @@ FindDiffExprFeatures <-
 
     cat("Saving TAR matrix in MTX format...")
     newMatDirName <- paste0(
-      stringr::str_remove(TARFile,"TAR_expression_matrix_withDir.txt.gz"),
+      stringr::str_remove(TARFile,"TAR_expression_matrix_withDir.tsv.gz"),
       "TAR_feature_bc_matrix"
     )
     if(!dir.exists(newMatDirName)){

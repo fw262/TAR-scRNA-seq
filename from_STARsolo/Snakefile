@@ -240,6 +240,7 @@ rule extract_HMM_expression_withDir:
 			CELL_BARCODE_TAG=CB\
 			MOLECULAR_BARCODE_TAG=UB\
 			GENE_NAME_TAG=XT\
+			GENE_STRAND_TAG=GS\
 			SUMMARY={log}\
 			USE_STRAND_INFO=True\
 			CELL_BC_FILE={params.BARCODES}\
@@ -247,7 +248,7 @@ rule extract_HMM_expression_withDir:
 		"""
 
 		# gunzip {params.BARCODES}.gz
-		# GENE_STRAND_TAG=GS\
+		#
 
 		# """
 		# umi_tools count \
