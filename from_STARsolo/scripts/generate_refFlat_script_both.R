@@ -1,4 +1,4 @@
-
+#TODO- fix core usage (currently just uses 20% of all available cores, which is not how it should work...)
 
 checkIfExistGene_noDir<-function(input,gene_ref){
   chrom<-input[[1]]
@@ -110,7 +110,7 @@ df<-HMManno_bare
 if(!require("parallel")){
 	install.packages("parallel")
 }
-library(parallel)
+library(parallel, quietly=T)
 
 num_cores<-detectCores()
 num_coresUse<-floor(num_cores/5)
