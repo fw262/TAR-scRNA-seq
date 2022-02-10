@@ -32,8 +32,8 @@ TMPDIR = config['TMPDIR']
 ########################################################################################################
 GENOME_FASTA = config['GENOME_FASTA']
 GENES_GTF = config['GENES_GTF']
-MERGEBP=str(config['MERGEBP'])
-THRESH=str(config['THRESH'])
+MERGEBP = str(config['MERGEBP'])
+THRESH = str(config['THRESH'])
 CORES = config['CORES']
 
 #FULLSCRIPTPATH=str(config['FULLSCRIPTPATH'])
@@ -117,7 +117,7 @@ rule calcHMMbed:
 		MEM="64G"
 	shell:
 		"""
-		bash scripts/SingleCellHMM_MW.bash {input} {CORES} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
+		bash scripts/SingleCellHMM_MW.bash {input} {threads} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
 		"""
 # Generate annotations from HMM in refFlat format
 #		Returns annotations with and without considering strandedness/direction
@@ -128,9 +128,11 @@ rule calcHMMrefFlat:
 	output:
 		# NODIR = '{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.noDir.refFlat',
 		WITHDIR ='{DATADIR}/{sample}/TAR/TAR_reads.bed.gz.withDir.refFlat'
+	threads:
+		CORES
 	shell:
 		"""
-		Rscript scripts/generate_refFlat_script_both.R {input.REFFLAT} {input.BEDGZ}
+		Rscript scripts/generate_refFlat_script_both.R {input.REFFLAT} {input.BEDGZ} {threads}
 		"""
 
 # Convert stranded annotations to gtf format
@@ -169,12 +171,12 @@ rule tagReads_withDir:
 		"""
 		{DROPSEQ}/TagReadWithGeneFunction\
 			I={params.IN_BAM}\
-		    O={output.OUT_BAM}\
-		    ANNOTATIONS_FILE={input.TAR_GTF}\
+			O={output.OUT_BAM}\
+			ANNOTATIONS_FILE={input.TAR_GTF}\
 			GENE_NAME_TAG=XT\
 			GENE_STRAND_TAG=GS\
 			USE_STRAND_INFO=true\
-		    MAX_RECORDS_IN_RAM=10000000\
+			MAX_RECORDS_IN_RAM=10000000\
 			CREATE_INDEX=true 2> {log}
 		"""
 		# """
