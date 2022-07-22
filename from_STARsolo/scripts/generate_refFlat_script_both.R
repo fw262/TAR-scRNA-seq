@@ -79,7 +79,7 @@ checkIfExistGene2 <- function(input,gene_ref){
 args=(commandArgs(TRUE))
 inputRefFlat <- args[1]
 HMMbedFile <- args[2]
-num_cores <- args[3]
+num_cores <- as.numeric(args[3])
 
 refName <- unlist(strsplit(inputRefFlat,"/"))[length(unlist(strsplit(inputRefFlat,"/")))]
 # read in hg_38 ref genes

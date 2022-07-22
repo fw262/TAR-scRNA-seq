@@ -1,60 +1,62 @@
-## Configuration for the from_STARsolo Snakemake workflow.
+## Configuration for the from Snakemake workflow.
 
 # sample name, pointing to STARsolo output directory (same as the ""--outFileNamePrefix" input for STAR)
+#TODO: add sample_sheet read-ins as an option for passing sample lists
 Samples:
-  Vis_yPAP_3A_STARsolo:
-  Vis_yPAP_3B_STARsolo:
-  Vis_yPAP_3C_STARsolo:
-  Vis_yPAP_3D_STARsolo:
-  # C2Cnuc_yPAP1_STARsolo:
-  # C2Cnuc_ctrl1_STARsolo:
+  C2Cnuc_yPAP1:
+  C2Cnuc_ctrl1:
+    # SkMB:
+    # SkMA:
+    # Heart_nuc_ctrl:
+    # SkM_cell_ctrl:
+    # SkM_nuc_ctrl:
+    # Heart_nuc_yPAP:
+    # SkM_cell_yPAP:
+    # SkM_nuc_yPAP:
+  # mock_D7PI:
+  # T1L_D7PI:
+  # Vis_yPAP_3A:
+  # Vis_yPAP_3B:
+  # Vis_yPAP_3C:
+  # Vis_yPAP_3D:
+  # Vis_ctrl_5A:
+  # Vis_ctrl_7B:
+  # Vis_ctrl_9A:
+  # Vis_yPAP_2A:
+  # Vis_yPAP_2B:
+  # Vis_yPAP_2C:
+  # Vis_yPAP_2D:
 
-    # D0_STARsolo:
-    # D1_STARsolo:
-    # D4_STARsolo:
-    # D6_STARsolo:
-    # D8_STARsolo:
-    # D12_STARsolo:
-    # D21_STARsolo:
-    # D4_SmallPattern_STARsolo:
-    # D4_LargePattern_STARsolo:
-    # D21_SmallPattern_STARsolo:
-    # D21_LargePattern_STARsolo:
+    # D0:
+    # D1:
+    # D4:
+    # D6:
+    # D8:
+    # D12:
+    # D21:
+    # D4_SmallPattern:
+    # D4_LargePattern:
+    # D21_SmallPattern:
+    # D21_LargePattern:
 
-    # C2Cnuc_yPAP1_STARsolo:
-    # C2Cnuc_ctrl1_STARsolo:
-    # SkMB_STARsolo:
-    # SkMA_STARsolo:
-    # Heart_nuc_ctrl_STARsolo:
-    # SkM_cell_ctrl_STARsolo:
-    # SkM_nuc_ctrl_STARsolo:
-    # Heart_nuc_yPAP_STARsolo:
-    # SkM_cell_yPAP_STARsolo:
-    # SkM_nuc_yPAP_STARsolo:
 
-    # Vis_yPAP_2A_STARsolo:
-    # Vis_yPAP_2B_STARsolo:
-    # Vis_yPAP_2D_STARsolo:
-    # Vis_ctrl_5A_STARsolo:
-    # Vis_ctrl_7B_STARsolo:
-    # Vis_ctrl_9A_STARsolo:
+
 
 # .fasta (genome sequence) and .gtf (gene annotations) files used to build STAR reference
 ## Mouse
-GENOME_FASTA: /workdir/dwm269/genomes/mm39_all/GENCODE_M27/GRCm39.genome.fa
-GENES_GTF: /workdir/dwm269/genomes/mm39_all/GENCODE_M27/gencode.vM27.chr_patch_hapl_scaff.annotation.gtf
+GENOME_FASTA: /workdir/dwm269/genomes/mm39_all/GENCODE_M28/GRCm39.genome.fa
+GENES_GTF: /workdir/dwm269/genomes/mm39_all/GENCODE_M28/gencode.vM28.chr_patch_hapl_scaff.annotation.gtf
 
 ## Human
 # GENOME_FASTA: "/workdir/dwm269/genomes/GRCh38_all/GENCODE_GRCh38p13/GRCh38.p13.genome.fa"
 # GENES_GTF: "/workdir/dwm269/genomes/GRCh38_all/GENCODE_GRCh38p13/gencode.v38.chr_patch_hapl_scaff.annotation.gtf"
 
 # directory where STARsolo outputs are stored - be sure to use an absolute path (starting with root)
-DATADIR: /workdir/dwm269/totalRNA/data/STARsolo/GRCm39_GENCODEM27_Visium
-# DATADIR: /workdir/dwm269/totalRNA/data/STARsolo/GRCm39_GENCODEM27
+DATADIR: /workdir/dwm269/totalRNA/data/STARsolo/GRCm39_GENCODEM28_Chromium
 # DATADIR: /workdir/dwm269/ma_ipsc/data/STARsolo/GRCh38p13
 
 # directory for temporary files
-TMPDIR: /workdir/dwm269/ma_ipsc/tmp
+TMPDIR: /workdir/dwm269/totalRNA/tmp
 # ./
 
 ########################################################################################################
@@ -65,7 +67,7 @@ DROPSEQ: /home/dwm269/miniconda3/envs/scTAR1.2/share/dropseq_tools-2.4.0-1
 GTFTOGENEPRED: /home/dwm269/miniconda3/envs/scTAR1.2/bin/gtfToGenePred # used to convert gtf to reFflat format, not needed if annotation is in reFflat
 BLASTDB: /shared_data/genome_db/BLAST_NCBI # path to where the nt BLAST database is stored
 
-CORES: 10 # how many cores to give for each process (snakemake automatically parallelizes process using "snakemake -j {numTotalCores}")
+CORES: 12 # how many cores to give for each process (snakemake automatically parallelizes process using "snakemake -j {numTotalCores}")
 
-MERGEBP: 100 #default 500 (Note- window size across genome is 50bp)
-THRESH: 2000000 #default 1000000
+MERGEBP: 500 #default 500 (Note- window size across genome is 50bp)
+THRESH: 10000000 #default 10000000
