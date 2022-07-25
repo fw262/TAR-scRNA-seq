@@ -27,7 +27,7 @@ PREFIX="HMMout"
 TMPDIR=${OUTDIR}/${PREFIX}_HMM_features
 mkdir -p ${TMPDIR}
 
-exec > >(tee ${TMPDIR}/SingleCellHMM_Run.log)
+exec > >(tee SingleCellHMM_Run_${TMPDIR}.log)
 exec 2>&1
 echo "Path to SingleCellHMM.R:  	${PL}"
 echo "input .bam                	${INPUT_BAM}"
@@ -41,12 +41,9 @@ echo ""
 echo "Reads spanning over splicing junction will join HMM blocks"
 echo "To avoid that, split reads into small blocks before input to groHMM"
 echo "Spliting and sorting reads..."
-
 bedtools bamtobed -i ${INPUT_BAM} -split | LC_ALL=C sort -k1,1V -k2,2n --buffer-size=${MEM} --parallel=${CORE} | awk '{print $0}' | gzip > ${TMPDIR}/${PREFIX}_split.sorted.bed.gz
-echo "Finished splitting input bam."
+
 cd ${TMPDIR}
-#zcat ${PREFIX}_split.sorted.bed.gz  |awk '{print $0 >> "chr"$1".bed"}'
-#zcat ${PREFIX}_split.sorted.bed.gz  |awk '{out="chr"$1".bed"; print $0 >> out; close(out)}'
 zcat ${PREFIX}_split.sorted.bed.gz  | awk '{print $0 >> $1".bed"}'
 find -name "*.bed" -size -1024k -delete
 wc chr*.bed -l > chr_read_count.txt
