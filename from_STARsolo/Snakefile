@@ -114,7 +114,7 @@ rule calcHMMbed:
 	threads:
 		CORES
 	params:
-		MEM="64G"
+		MEM="64G" # Change this if you are using a low-RAM machine
 	shell:
 		"""
 		bash scripts/SingleCellHMM_MW.bash {input} {threads} {params.MEM} {MERGEBP} {THRESH} {wildcards.DATADIR}/{wildcards.sample}/TAR
@@ -179,21 +179,6 @@ rule tagReads_withDir:
 			MAX_RECORDS_IN_RAM=10000000\
 			CREATE_INDEX=true 2> {log}
 		"""
-		# """
-		# featureCounts \
-		# -s 1 \
-		# -f \
-		# -M \
-		# -Q 0 \
-		# --fraction \
-		# -R BAM \
-		# -T {threads} \
-		# -a {input.TAR_GTF} \
-		# -o {output.TAR_BULK_COUNTS} \
-		# {params.IN_BAM}
-		# """
-# Old tagging code...
-
 
 rule sort_index_tagged_bam:
 	input:
@@ -209,18 +194,6 @@ rule sort_index_tagged_bam:
 		samtools index -@ {threads} {output.OUT_BAM}
 		"""
 
-#TODO: check settings to make sure overlaps aren't weird
-
-#TODO- Do we need this?
-# Remove any non-ACGT characters from cell barcodes list
-# rule cleanCellsList:
-# 	input:	'{DATADIR}/{sample}/Solo.out/GeneFull/filtered/barcodes.tsv.gz'
-# 	output: '{DATADIR}/{sample}/TAR/cellList.txt'
-# 	shell:
-# 		"""
-# 		zcat {input} | sed 's/[^ACGT]//g' >> {output}
-# 		"""
-
 # Get counts matrix for HMM-annotated features
 rule extract_HMM_expression_withDir:
 	input:
@@ -232,7 +205,6 @@ rule extract_HMM_expression_withDir:
 		TMPDIR = TMPDIR
 	log:
 		'{DATADIR}/{sample}/TAR/DropSeq_DigitalExpression.log'
-		# '{DATADIR}/{sample}/TAR/umitools_count.log'
 	shell:
 		"""
 		{DROPSEQ}/DigitalExpression\
@@ -249,9 +221,7 @@ rule extract_HMM_expression_withDir:
 			OMIT_MISSING_CELLS=False
 		"""
 
-		# gunzip {params.BARCODES}.gz
-		#
-
+# Might switch for umi-tools in the fiture
 		# """
 		# umi_tools count \
 		# --per-gene \
@@ -267,12 +237,6 @@ rule extract_HMM_expression_withDir:
 		# -E {log} \
 		# -S {output.COUNTS}
 		# """
-
-		#
-
-#TODO: check UMI barcode tag? check strandedness settings?
-
-
 
 #########################################################
 # Diff. TAR expression & BLAST
