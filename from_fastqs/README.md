@@ -1,4 +1,4 @@
-# TAR-scRNA-seq (*from_fastqs*)
+# TAR-scRNA-seq (`from_fastqs`)
 Author: Michael Wang (fw262@cornell.edu)
 
 ## Outline
